@@ -14,6 +14,8 @@
 \usepackage{epstopdf}
 \usepackage{subfigure}
 \usepackage{verbatim}
+\usepackage{diagbox}
+
 
 
 \newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
@@ -67,7 +69,7 @@ email address}
 \maketitle
 
 \begin{abstract}
-In order to meet different workload demand, a large number of heterogeneous storage devices are usually deployed on each node in the data center, i.e. SSD and HDD. However, data processing frameworks such as MapReduce often considers that hardware is homogeneous and task scheduling is not aware of the difference between storage devices. In this case, if a large number of tasks are scheduled to low-speed storage nodes, it will greatly cause data processing bottlenecks. In this paper, we formulate Heterogeneous Storage-aware Task Scheduling Problem(HTS), and show its NP-hardness. In order to solve this problem, a stochastic algorithm is proposed, whose distance from the optimum value is within t with high probability. Experiments show that the algorithm can improve the performance of Hadoop default scheduling mechanism by 40\%.
+Nowadays, a trend in data center is that there are more and more heterogeneous storage devices, i.e. SSD and HDD, which may differ greatly in performance. However, data processing frameworks such as MapReduce often considers that hardware is homogeneous and task scheduling is not aware of the difference between heterogeneous storage devices. In this case, if a large number of tasks are scheduled on low-speed storage nodes, it will greatly cause data processing bottlenecks. Furthermore, due to the different performance of each disk, it is difficult to make all disks have the balanced load. In this paper, we formulate the above problem as Heterogeneous Storage-aware Task Scheduling Problem (HTS), and show its NP-hardness. In order to solve this problem, we propose a heuristic algorithm and a random algorithm whose distance from the optimum value is within $t$ with high probability. Experiments show that the our algorithm can reduce the task execution by up to 55\% over the storage-unaware scheduling mechanism.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -76,39 +78,28 @@ big data processing, heterogeneous storage, task scheduling
 
 \section{Introduction}
 
-Nowadays, in data centers that support big data processing platforms i.e. Hadoop\cite{b14} and Spark\cite{b15}, there are more and more heterogeneous devices. On the one hand, due to the purchase of hardware devices from different hardware providers, such as Dell\cite{b16} and Samsung\cite{b17}, the different standard hardware  lead to heterogeneous; on the other hand, the use and maintenance of equipment may also lead to heterogeneous. However, the underlying heterogeneity of devices is often neglected in big data platforms, which results in the mismatch between upper software and lower hardware. The result is a waste of hardware resources or low performance of big data processing.
+Nowadays, in data centers that support big data processing platforms, i.e. Hadoop\cite{b14} and Spark\cite{b15}, there are more and more heterogeneous devices. On the one hand, due to the purchase of hardware devices from different hardware providers, such as Seagate\cite{b16} and Samsung\cite{b17}, the different standard hardware  lead to heterogeneous; on the other hand, the use and maintenance of equipment may also lead to heterogeneous. However, the underlying heterogeneity of devices is often neglected in big data platforms, which results in the mismatch between upper software and lower hardware. The result is a waste of hardware resources or low performance of big data processing.
 
-In order to improve the performance of big data processing, we focus on heterogeneous storage devices. A data processing workload, named a job, are usually divided into parallel tasks and scheduled to each node for execution. A task execution is usually divided into two parts, the first part is the data reading stage, and the other part is the task execution stage. Experiments show that if the a task read data from low-speed storage devices, the data read stage will be the bottleneck of task execution. Therefore, what we need to do is to select high-speed and low-load disks(If there are a large amount of tasks reading data on a high-speed disk at the same time, it may also cause bottlenecks in task execution.) for tasks as much as possible.
+In order to improve the performance of big data processing, we focus on heterogeneous storage devices. A data processing workload, named a job, are usually divided into parallel tasks which scheduled on each node for execution. A task execution is usually divided into two parts, the first part is the data reading stage, and the other part is the task execution stage. On the one hand, the speed of the processor is much faster than the I/O, on the other hand, the node usually has multiple processors. The above two aspects lead to that data reading stage will be the bottleneck of task execution, i.e. in TABLE \ref{tab1}. However, there are greatly differences in read performance between heterogeneous disks. Therefore, what we need to do is to select high-speed and low-load disks (If there are a large amount of tasks reading data on a high-speed disk at the same time, it may also cause bottlenecks in task execution) for tasks as much as possible. 
 
-Most of the previous work focused on data locality\cite{b18}, deploying tasks close to data, but ignore the performance of storage devices. Although some work \cite{b1}\cite{b6}\cite{b7} considers heterogeneous storage devices, they didn't specify the performance of storage devices. HDFS\cite{b19}makes a clear distinction between SSD and HDD, and tasks are scheduled according to it. In fact, there are a large number of heterogeneous storage devices in the data center, and it is one-sided to devide the storage devices into two categories.
+However, there are two aspects which make it difficult to solve the problem.
+On the one hand, due to the different performance of heterogeneous disks, the same task might have different loads to the different disks. For example, the latency of read the same data $m_i$ from DISK-1 and DISK-2 are 0.3s and 0.1s, respectively. If task $t_i$ selects reading the data in DISK-1, the load to disk is 0.3 and selects DISK-2 is 0.1. On the other hand, because the data has been deployed on different disks before the task arrives, the task can only read data from fixed disks. For example, for HDFS data storage strategy, the redundancy factor of the data $m_i$ is 3, when a task needs to read the data $m_i$, only the 3 disks storing replica of $m_i$ can be selected. To avoid the bottleneck of reading during task execution, what we need to do is to balance the load of all disks. But the above two aspects make it difficult.
+%On the other hand, because the data has been deployed on different disks before the task arrives, the task can only read data from fixed disks. For example, for HDFS data storage strategy, the redundancy factor of the data $m_i$ is 3, when a task needs to read the data $m_i$, only the 3 disks storing replica of $m_i$ can be selected. 从固定的几个选择，表明不能使得全局负载均衡
 
-In this paper, we focus on the data reading stage in the execution of tasks. There are two aspects that affect data reading in task execution, one is the read performance of the disk itself, the other is the load of the disk, that is, the number of tasks that are reading the data from the disk. Then, it is described as an optimization problem, and we propose greedy algorithm and stochastic algorithm to solve the problem. Experiments show that the performance of the proposed algorithm is 40\% better than that of the default algorithm such as hadoop. More concretely, our contributions are as follows: 
+%Most of the previous work focused on data locality\cite{b18}, deploying tasks close to data, but these works ignore the performance of storage devices. Although some work \cite{b1}\cite{b6}\cite{b7} considers heterogeneous storage devices, they didn't specify the performance of storage devices. HDFS\cite{b19} only makes a distinction between SSD and HDD, and tasks are scheduled according to them. In fact, there are a large number of heterogeneous storage devices in the data center, and it is one-sided to divide the storage devices into two categories.
+
+Previous studies on heterogeneity have also been conducted to improve the performance of data processing. However, most of the research focuses on heterogeneous computing resources \cite{b25}\cite{b26}, ignoring the heterogeneous storage resources.
+
+In this paper, we focus on the data reading stage during the task execution based on the heterogeneous storage. There are two aspects that affect data reading in task execution, one is the read performance of the disk itself, the other is the load of the disk, that is, the number of tasks that are reading the data from the disk. Focus on the above two points, we formulate it as an optimization problem and propose a heuristic algorithm and a random algorithm to solve the problem. Experiments show that the performance of the proposed algorithm is 40\% better than the Storage-unaware scheduling mechanism. More concretely, our contributions are as follows: 
+
 \begin{itemize}
-\item We present a motivational study to demonstrate the necessity of sloving the problem by investigating impact of reading data during the task execution phase.
-\item We propose heterogeneous storage-aware task scheduling problem,  which is formally described and proved to be NP-hard. Then we propose  heuristic algorithm, named HTS-greedy, and  a performance-guaranteed
-random algorithm, called HTS-rdm, to solve this problem. The solution found by the HTS-rdm algorithm can approach the optimal solution with probability  1 - O($e^{-t^2}$) where $t$ denotes the 
-the difference between solution found by the HTS-rdm and the optimal solution.
-\item We implemente the above algorithm through simulation experiments. The experimental results show that the performance of the proposed algorithm is improved by 40\% compared with the default data reading mechanism in hadoop.
+%\item We present the necessity of sloving this problem by showing impact of reading data phase during the task execution.
+\item We analyzed the impact of heterogeneous disks on task execution and formulate the heterogeneous storage-aware task scheduling problem which is proved to be NP-hard. 
+\item We propose a heuristic algorithm, HTS-greedy, and a performance-guaranteed random algorithm, HTS-rdm, to solve this problem. The HTS-rdm algorithm whose distance from the optimum value is within $t$ with high probability 1 - O($e^{-t^2}$) where $t$ denotes the difference between solution found by the HTS-rdm and the optimal solution.
+\item We implemente the above two algorithm through simulation experiments. The results of experiment show that the performance of the proposed algorithm is improved by 40\% compared with the storage-unaware scheduling mechanism.
 \end{itemize}
 
 The rest of the paper is organized as follows. The related works are presented in Section \ref{RELATED_WORKS}. In Section \ref{RELATED_WORKS}, we present the related works of the HTS problem. Then we propose our system model and our algorithm in Section  \ref{SYSTEM_MODEL} and Section  \ref{DESIGN_ALGORITHM}. At last, we conclude this paper in Section \ref{CONCLUSION} by summarizing our main contributions.
-\section{RELATED WORKS}\label{RELATED_WORKS}
-The related works consist of two aspects. On the one hand, due to limited link bandwidth, some work is focused on data locality. On the other hand, in heterogeneous environments, it is not enough to consider data locality alone and some other studies have been carried out to accelerate data processing by studying hardware heterogeneity \cite{b1}.
-
-Due to the limited network bandwidth resources in data center, if a large amount of data is transmitted between nodes during task execution, it will greatly affect the task performance. Therefore, processing data locally as much as possible can improve performance, i.e. placeing map task to the node which stores the input data. Matei et al. \cite{b2} proposes delay scheduling to assure data locality. Delay scheduling considers that when a node has idle slots, priority should be given to scheduling tasks with input data at that node, and delayed scheduling tasks without input data at that nodes. Ganesh \cite{b3} makes multiple replicas of high-frequency data by analyzing the access frequency of data, improve the data locality in this way. Cristina \cite{b4} proposes a distributed adaptive data replication algorithm DARE, which can help scheduler achieve better data locality. Jalaparti \cite{b5} believes that most of the production work is repetitive and predictable, which enables us to plan ahead. Coordinating and improving the tasks and data placement of these jobs can effectively reduce bandwidth usage and improve data locality. All of these work improves the performance of data processing by improving data locality.
-
-However, in heterogeneous data centers, due to the different performance of data storage devices, task completion time is often different. At present, some of the existing work is based on the research of storage heterogeneity, which accelerates the method of large data processing. Xu et al. \cite{b6} considers the current usability of underlying hardware (CPU, memory, I/O), but does not consider the performance differences of different storage hardware. Pan et al. \cite{b7} takes into account the performance between different storage, but the problem can not be formally described. et al. Wang B \cite{b8} uses Markov model to describe the use of nodes in the cluster to deploy data reasonably. However, the scheduling problem of tasks is not considered, and the heterogeneity of different storage media is also not considered. These work does not accurately define the differences between storage hardwares, and choosing low-speed storage for a large amount of tasks can also lead to bottlenecks.
-
-The difference between those tasks and ours are that our work clearly defines the difference in disk read speed and that deploying tasks according to different disk read speed to avoid bottlenecks.
-
-\section{SYSTEM MODEL AND PROBLEM FORMULATION}\label{SYSTEM_MODEL}
-In this section, we first introduce the background of large data processing based on heterogeneous storage and build the system model. After that, the task scheduling problem with heterogeneous storage awareness is formulated as a  minimization problem whose objective is to minimize the maximum disk read time.
-
-\subsection{Background and motivation}\label{AA}
-
-A large number of query jobs are running on large data processing platforms, which have the requirements of low response lantacy and high quality of service. During execution, jobs are subdivided into parallel tasks which scheduled to heterogeneous nodes. However, the general task scheduler i.e. FIFO scheduler is based on the fact that nodes are homogeneous, and the nodes with low computational power and high computational power will be deployed with the same amount of tasks. Tasks deployed by nodes with low computational power will have a longer execution time. The query job doesn't finish untill the completion of all tasks. Therefore, this kind of scheduling mechanism may cause the execution time of jobs to be too long to guarantee low query latency.
-
-Task execution time is usually divided into two parts, one part is the lantacy of reading data from disk, the other part is the time of task execution in CPU. Experiments show that the reading time of low-speed disks can account for 70\% of the total task execution time, as shown in \ref{tab1}. Therefore, in order to ensure low latency of query jobs, data can be read from low $read-time$ disks. In the following section, we will use $read-time$ to represent the performance of a disk. This value is the time required to read a data replica from disk i.e. 0.2s. The smaller the value, the better the disk performance. When reading N data from the disk, the total time is $read-time$ * N. In data centers, data is deployed in multiple copies on disks with different reading speeds. When data centers generate a large number of tasks, we consider deploying tasks to minimize the maximum disk $read-time$s,  thereby speeding up data processing.%tasks on high-speed disks and fewer tasks on low-speed disks to minimize the overall task's disk reading time, thereby speeding up large data processing.
 
 \begin{table}[htbp]
 	\caption{Comparisons of read time and execution time}
@@ -117,7 +108,7 @@ Task execution time is usually divided into two parts, one part is the lantacy o
 			\hline
 			\multicolumn{2}{|c|}{\textbf{For 640MB data}} \\
 			\hline
-			\textbf{Reading time from HDD}& \textbf{Execution time (WordCount)}\\
+			\textbf{Time of data reading stage}& \textbf{Time of  Execution stage}\\
 			\hline
 			3s & 1.5s  \\
 			\hline
@@ -126,7 +117,33 @@ Task execution time is usually divided into two parts, one part is the lantacy o
 	\end{center}
 \end{table}
 
-As shown in Fig.\ref{fig1} there are four disks in the data center: DISK1, DISK2, DISK3 and DISK4. Each disk has different $read-time$, and $read-time$ of the four disks , $T$, are 0.3, 0.1, 0.2 and 0.2, respectively. The deployment of data replicas is shown in Fig.\ref{fig1}. When tasks are deployed, a general scheduler may place tasks such as scheduling1, and the execution time of the task is max \{$T_1 * N_1$, $T_2 * N_2$, $T_3 * N_3$,  $T_4 * N_4$, \} = max\{0.3*1, 0.1*1, 0.2*3, 0.2*1\}=0.3. Storage-aware task schedulers may place tasks as scheduling2, with a task execution time of at least 0.2. Obviously, the scheduling2 is optimum.
+\section{RELATED WORKS}\label{RELATED_WORKS}
+The related works consist of two parts. For the first part, due to limited link bandwidth, some work is focused on data locality. Furthermore, in heterogeneous environments, it is not enough to consider data locality alone and some other studies have been carried out to accelerate data processing by studying hardware heterogeneity \cite{b1}.
+
+Due to the limited network bandwidth resources in data center, if a large amount of data is transmitted between nodes during task execution, it will greatly affect the task performance. Therefore, processing data locally as much as possible can improve performance, i.e. placeing map task to the node which stores the input data. Matei et al. \cite{b2} proposes delay scheduling to assure data locality. Delay scheduling considers that when a node has idle slots, priority should be given to scheduling tasks with input data at that node, and delayed scheduling tasks without input data at that nodes. Ganesh \cite{b3} makes multiple replicas of high-frequency data by analyzing the access frequency of data, improve the data locality in this way. Cristina \cite{b4} proposes a distributed adaptive data replication algorithm DARE, which can help scheduler achieve better data locality. Jalaparti \cite{b5} believes that most of the production work is repetitive and predictable, which enables us to plan ahead. Coordinating and improving the tasks and data placement of these jobs can effectively reduce bandwidth usage and improve data locality. All of these work improves the performance of data processing by improving data locality.
+
+However, in heterogeneous data centers, due to the different performance of data storage devices, task completion time is often different. At present, some of the existing work is based on the research of storage heterogeneity, which accelerates the speed of data processing. Xu et \cite{b6} considers the current usability of underlying hardware (CPU, memory, I/O), but does not consider the performance differences of different storage hardware. 
+In Hadoop 2.8, HDFS\cite{b19} considers heterogeneous storage and supports multiple storage strategies. One of the storage strategies is ONE\_SSD, that is, one replicas is stored in SSD, and the rest is stored in HDD. However, the task scheduling strategy does not perceive the type of disk where data is stored.
+Based on ONE\_SSD, Pan \cite{b7} proposes H-Scheduler which takes into account the performance between HDD and SSD. Facing the trend of increasing heterogeneous storage, it is one-sided to divide the storage devices into two categories. Wang B \cite{b8} uses Markov model to describe the use of nodes in the cluster to deploy data reasonably. However, the scheduling problem of tasks is not considered, and the heterogeneity of different storage media is also not considered. These work does not accurately define the differences between storage hardwares, and there is still a situation where a large number of tasks read low-speed devices, causing bottlenecks.
+
+The difference between those tasks and ours is that our work specificly defines the difference in reading speed of disk. Then, the scheduler deploys tasks according to different reading speed of disk to avoid bottlenecks.
+
+\section{SYSTEM MODEL AND PROBLEM FORMULATION}\label{SYSTEM_MODEL}
+In this section, we will introduce the background of big data processing based on heterogeneous storage and build the system model. After that, the heterogeneous storage-aware task scheduling problem is formulated as a minimization problem whose objective is to minimize the maximum disk's reading time.
+
+\subsection{Background and motivation}\label{AA}
+
+%A large number of jobs are running on big data processing platforms, which have the requirements of low response lantacy and high quality of service. 
+A large number of jobs are running on big data processing platforms. During execution, jobs are divided into parallel tasks which scheduled to heterogeneous nodes. However, the general task scheduler is usually storage-unaware. The high-speed disk and the low-speed disk might be deployed the same number of tasks. Then, the tasks that read data from low-speed disk have a longer execution time. Specifically, they will be the bottleneck of job (The job doesn't finish untill the completion of all tasks). Therefore, storage-unaware scheduling mechanism may cause the execution time of jobs too long to guarantee performance.
+%i.e. FIFO scheduler is based on the fact that nodes are homogeneous, and the nodes with low computational power and high computational power will be deployed with the same amount of tasks. Tasks deployed by nodes with low computational power will have a longer execution time. The query job doesn't finish untill the completion of all tasks. Therefore, this kind of scheduling mechanism may cause the execution time of jobs to be too long to guarantee low query latency.
+
+%Task execution is usually divided into two parts, one is the data reading stage, the other part is the task execution stage. Experiments show that the reading time of low-speed disks can account for 70\% of the total task execution time, as shown in \ref{tab1}. Therefore, 
+
+In order to improve the performance of data processing jobs, tasks should read data from high performance and low load disks. To specificly express the performance and load of the disk, we introduce parameter $read-time$. This value, i.e. 0.2s, is the time required to read a data replica from the disk. The smaller the value is, the better the disk performance has. Note that disks are heterogeneous, the $read-time$ of each disk are different. If there are $N$ tasks reading data from the disk, the load of the disk is $read-time$ * N. In data centers, each data has $C$ replicas which deployed on $C$ disks whose $read-time$ are different. When generating a large number of tasks, we consider deploying tasks to minimize the maximum disk load, thereby avoiding disk reading bottlenecks and speeding up data processing.%tasks on high-speed disks and fewer tasks on low-speed disks to minimize the overall task's disk reading time, thereby speeding up big data processing.
+
+
+
+We will use an example to illustrate the task scheduling problem in heterogeneous storage. As shown in Fig.\ref{fig1}, in the data center there are four disks, DISK1, DISK2, DISK3 and DISK4. Each disk has a different $read-time$, which are $T_1$ = 0.3, $T_2$ = 0.1, $T_3$ = 0.2 and $T_4$ = 0.2, respectively. The deployment of data replicas is shown in Fig.\ref{fig1}. When tasks are deployed, a general scheduler may place tasks such as scheduling1, and the execution time of the task is max \{$T_1 * N_1$, $T_2 * N_2$, $T_3 * N_3$,  $T_4 * N_4$, \} = max\{0.3*1, 0.1*1, 0.2*3, 0.2*1\}=0.3. Storage-aware task schedulers may place tasks as scheduling2, with a task execution time of 0.2. Obviously, the scheduling2 is optimum.
 
 \begin{figure}[!t]
 	\centering
@@ -135,7 +152,7 @@ As shown in Fig.\ref{fig1} there are four disks in the data center: DISK1, DISK2
 	\label{fig1}
 \end{figure}
 
-Example shows that when choosing the disk of the input data for a task, two things need to be considered: the first is the $read-time$ of a disk, and the second is the amount of tasks that are taking the data from the disk as input, that is, the load of the disk. These two things are able to ensure that there are no bottlenecks in the process of reading data from disk and the data processing can be accelerated.
+Example shows that when choosing the disk for a task, two things need to be considered: the first is the $read-time$ of a disk, and the second is the load of the disk. These two things are able to ensure that there are no bottlenecks during the task execution and the data processing can be accelerated.
 
 \begin{table}[!t]
 	\Large
@@ -185,17 +202,17 @@ Example shows that when choosing the disk of the input data for a task, two thin
 
 \subsection{System Model}
 
-The notations we need are shown in the table \ref{table-notations}. The data center is equipped with heterogeneous disks, and $\mathbb{D}$ is used to represent the set of all disks which are $d_{1}$, $d_{2}$, ...,$d_{|D|}$.  $\mathcal{M}$ denotes the set of all the data in data center, and each data is represented by $m_{1}$, $m_{2}$, ..., $m_{|M|}$. Each data $m_{l}$ has $C$ replicas which are $r_i^1$, $r_i^2$,... $r_i^{C}$ stored on $C$ different disks, with each data replica's size $\tau$, i.e. 64MB or 128MB. If the disk $d_{i}$ contains a replica of the data $m_l$, $\pi_l^{i}$ = 1. Otherwise, the $\pi_l^{i}$ = 0. In datacenter with heterogeneous disks, each disk has its own $read-time$ represented by $T_i$, and its value represents the time required to read a data replica from disk.
+The notations we need are shown in the table \ref{table-notations}. The data center is equipped with heterogeneous disks, and $\mathbb{D}$ is used to represent the set of all disks which are $d_{1}$, $d_{2}$, ...,$d_{|D|}$.  $\mathcal{M}$ denotes the set of all the data in data center, and each data is represented by $m_{1}$, $m_{2}$, ..., $m_{|M|}$. Each data $m_{l}$ has $C$ replicas which are $r_i^1$, $r_i^2$,... $r_i^{C}$ stored on $C$ different disks, with each data replica's size $\tau$, i.e. 64MB or 128MB. If the disk $d_{i}$ contains a replica of the data $m_l$, $\pi_l^{i}$ = 1. Otherwise, $\pi_l^{i}$ = 0. In datacenter with heterogeneous disks, each disk has its own $read-time$ represented by $T_i$, and the value of $T_i$ represents the time required to read a data replica from disk $t_i$.
 
-When the query job arrives, the job will be divided into parallel tasks. $\mathbb{T}$ denotes the set of all tasks which are $t_1$, $t_2$, ..., $t_{T}$. Each task $t_j$ corresponds to a unique input data $\phi(t_j)$. Since there are $C$ replicas of each data deployed in $C$ disks, the replicas of $\phi(t_j)$ exists in $C$ disks, assuming that it is $d_{j1}$, $d_{j2}$,... $d_{j|C|}$. So $t_j$ has $C$ choices.
+When the query job arrives, the job will be divided into parallel tasks. $\mathbb{T}$ denotes the set of all tasks which include \{$t_1$, $t_2$, ..., $t_{T}$ \}. Each task $t_j$ corresponds to a unique input data $\phi(t_j)$. Since there are $C$ replicas of each data deployed in $C$ disks, the replicas of $\phi(t_j)$ exists in $C$ disks, assuming that it is $d_{j1}$, $d_{j2}$,... $d_{j|C|}$. So $t_j$ can read $\phi(t_j)$ from one of $C$ disks.
 
-Next, if the task $t_j$ chooses the replica sored in disk $d_i$, then $I_i^j$ = 1, where i belongs to \{$d_{j1}$, $d_{j2}$,... $d_{j|C|}$\}. In this case, the time of task $t_j$ reading the replica from disk $d_{j}$ is $I_i^j*T_i$. There may be some other tasks that select the other replicas in disk $d_{i}$, so the total $read-time$ of disk $d_{i}$ is $\sum_{j}I_i^j*T_i$. In order to avoid a large number of tasks to choose the same disk, resulting in data processing bottlenecks. Our objective is to minimize the maximum disk $read-time$.
+Next, if the task $t_j$ chooses the replica of data $\phi(t_j)$ stored in disk $d_i$, then $I_i^j$ = 1. In this case, the time of task $t_j$ reading the replica from disk $d_{j}$ is $I_i^j*T_i$. There may be some other tasks that select replicas stored in disk $d_{i}$, so the load of disk $d_{i}$ is $\sum_{j}I_i^j*T_i$. In order to avoid a large number of tasks to choose the same disk, resulting in data processing bottlenecks. Our objective is to minimize the maximum disk load.
 
 \subsection{Heterogeneous Storage-aware Task Scheduling Problem Formulation ($\rm{HTS}$)} \label{HTS}
 
 %$\mathcal{AP} \mathbb{AP}$ (~/~)
 
-There are a large number of heterogeneous disks in the data center. If the scheduler are unaware of the heterogeneity of disks, it is likely that there are a large number of tasks that read data from the same low-speed disk, resulting in bottlenecks. To avoid this situation, we propose heterogeneous storage-aware task scheduling(HTS), as shown below. The optimization goal is to minimize the maximum disk $read-time$. Finally, by determining the value of the decision variable $I_i^j$, the appropriate disk is selected for each tasks to read the corresponding data. Detailed description is as follows:
+A large number of tasks are running in the cluster of data centers. If the scheduler are unaware of the heterogeneity of disks, it is likely that there are a large number of tasks that read data from the same low-speed disk, resulting in bottlenecks. To avoid this situation, we propose heterogeneous storage-aware task scheduling(HTS), as shown below. The optimization goal is to minimize the maximum disk load. Finally, by determining the value of the decision variable $I_i^j$, the appropriate disk is selected for each tasks to read the corresponding data. Detailed description is as follows:
 \begin{align}
 Min:&\;\;\;\;\;\max\limits_{i}\{\sum_{j}I_i^j*T_i\}\;[\rm{HTS}]\nonumber\\
 s.t. 
@@ -204,9 +221,9 @@ s.t.
 &\;\;\;\;\;I_i^j\in\{0,1\},\;for\;\forall i,j\label{def-cons}
 \end{align}
 
-Constraint 1 indicates that task $t_j$ can only read its input data from one of all disks. Since one data is only stored on C disks, not all disks contain that data. Constraint 2 indicates task $t_j$ can only read its input data from the disks which stores its input data. $\phi(t_j)$ denotes task $t_j$'s input data and $\phi(t_j)$ = $m_j$. If one replica of data $m_j$ is stored in disk $d_i$, $\pi_{\phi(t_j)}^{d_i}$ = 1, otherwise $\pi_{\phi(t_j)}^{d_i}$ = 0. Constraint 3 denotes the range of decision variables, which can only be 0 or 1. $I_i^j$ = 1 indicates that task $t_j$ selects the replica stored on disk $d_i$ as input, while task $t_j$ = 0 is on the contrary.
+Constraint (\ref{task-cons}) indicates that task $t_j$ can only select one disk to read data $\phi(t_j)$. Constraint (\ref{data-cons}) indicates task $t_j$ can only read its input data from the disks which stores its input data. If one replica of data $\phi(t_j)$ is stored in disk $d_i$, then $\pi_{\phi(t_j)}^{d_i}$ = 1, otherwise $\pi_{\phi(t_j)}^{d_i}$ = 0. Constraint 3 denotes the range of decision variables, which can only be 0 or 1. $I_i^j$ = 1 indicates that task $t_j$ selects the replica stored on disk $d_i$ as input, while task $t_j$ = 0 is on the contrary.
 
-The key to solve HTS problem is to determine the value of decision variables {$I_i^j$}. Next, we analyze the hardness of this problem and prove that the HTS problem is NP-hard. This is because the HTS problem can be reduced from the integer linear programming (ILP) problem, and the ILP problem is NP-hard, so HTS problem is NP-hard. The specific proof process is as follows.
+The key to solve HTS problem is to determine the value of decision variables {$I_i^j$}. Next, we analyze the hardness of this problem and prove that the HTS problem is NP-hard. HTS problem can be reduced from the integer linear programming (ILP) problem. The ILP problem is NP-hard, and it follows that HTS problem is NP-hard. The specific proof process is as follows.
 
 \emph{Theorem 1:} The HTS problem is NP-hard.
 
@@ -245,27 +262,28 @@ Let  $x$ = $\sum_{j}I_0^j$, $y$ = $\sum_{j}I_1^j$, $z$ = $\sum_{j}I_2^j$, and th
 Min:&\;\;\;\;\;\max\{x,y,z\}\;[\rm{HTS-sp}]\\
 s.t. 
 &\;\;\;\;\;x + y + z = n\;\label{enlarge-cons}\\
-&\;\;\;\;\;0 \leq x \leq n, x\in\mathbb{Z}\nonumber\\
-&\;\;\;\;\;0 \leq y \leq n, y\in\mathbb{Z}\nonumber\\
-&\;\;\;\;\;0 \leq z \leq n, z\in\mathbb{Z}\nonumber
+&\;\;\;\;\;0 \leq x, y, z \leq n  \;\;x, y, z\in\mathbb{Z}\nonumber
+%&\;\;\;\;\;0 \leq y \leq n, y\in\mathbb{Z}\nonumber\\
+%&\;\;\;\;\;0 \leq z \leq n, z\in\mathbb{Z}\nonumber
 \end{align}
 In the minimization problem, x + y + z = n can be modified to x + y + z = n and let $R$ denotes $\max\{x,y,z\}$. 
 
 Finally, HTS-sp problem is converted to:
 \begin{align}
-Min:&\;\;\;\;\;\max\{R\}\;[\rm{HTS-ILP}]\label{HTS-ILP}\\
+Min:&\;\;\;\;\;0*x+0*y+0*z+R\;[\rm{HTS-ILP}]\label{HTS-ILP}\\
 s.t. 
 &\;\;\;\;\;x + y + z \geq n\;\nonumber\\
 &\;\;\;\;\;-x + R \geq 0 \nonumber\\
 &\;\;\;\;\;-y + R \geq 0  \nonumber\\
 &\;\;\;\;\;-z + R \geq 0 \nonumber\\
-&\;\;\;\;\;0 \leq x \leq n, x\in\mathbb{Z}\nonumber\\
-&\;\;\;\;\;0 \leq y \leq n, y\in\mathbb{Z}\nonumber\\
-&\;\;\;\;\;0 \leq z \leq n, z\in\mathbb{Z}\nonumber\\
+&\;\;\;\;\;0 \leq x, y, z \leq n  \;\;x, y, z\in\mathbb{Z}\nonumber\\
+%&\;\;\;\;\;0 \leq x \leq n, x\in\mathbb{Z}\nonumber\\
+%&\;\;\;\;\;0 \leq y \leq n, y\in\mathbb{Z}\nonumber\\
+%&\;\;\;\;\;0 \leq z \leq n, z\in\mathbb{Z}\nonumber\\
 &\;\;\;\;\;R \geq 0, R\in\mathbb{Z}\nonumber
 \end{align}
 
-The decision version of 0-1 ILP (A variation in which only the restrictions must be satisfied, without optimization) is one of Karp's 21 NP-complete problems  \cite{b9}, so ILP is NP-hard. Further, the problem HTS-ILP in \ref{HTS-ILP} is an instance of ILP in\ref{ILP}, so the HTS-ILP problem is NP-hard.
+Obviously, HTS-ILP in (\ref{HTS-ILP}) is an instance of ILP in (\ref{ILP}). The decision version of 0-1 ILP (A variation in which only the restrictions must be satisfied, without optimization) is one of Karp's 21 NP-complete problems  \cite{b9}, so ILP is NP-hard. Further, the HTS-ILP problem is NP-hard.
 
 On the one hand, when the optimal solution of HTS-ILP problem is obtained, the corresponding {x, y, z} can be converted into variable {$I_i^j$} in polynomial time by setting the value in \{$I_0^0$, $I_0^1$, ...,$I_0^{x-1}$, $I_1^{x}$, $I_1^{x+1}$, ..., $I_1^{x+y-1}$, $I_2^{x+y}$, $I_1^{x+y+1}$, ..., $I_2^{x+y+z-1}$\} to be 1, which will make the corresponding HTS-sp problem obtain the optimal solution. On the other hand, when the variable \{$I_i^j$\} make the HTS-sp problem obtain the optimal solution, the HTS-ILP also obtains the optimal solution by setting $x$ = $\sum_{j}I_0^j$, $y$ = $\sum_{j}I_1^j$, $z$ = $\sum_{j}I_2^j$. It can be seen from the above that any solution can be polynomially transformed between the HTS-sp and HTS-ILP. Therefore, HTS-sp is NP-hard. 
 
@@ -273,12 +291,12 @@ As a result of that HTS-sp is a special case in HTS, HTS problem is NP-hard.\hfi
 
 \section{DESIGN of ALGORITHMS FOR HTS PROBLEM}\label{DESIGN_ALGORITHM}
 
-Due to the hardness of HTS problem, the optimal solution can not be obtained in polynomial time. In order to solve NP-hard problem, heuristic algorithm is the basic solution. At first, we propose a heuristic algorithm based on greedy idea, HTS-greedy. However, this kind of algorithm usually has no guarantee of quality, although in some cases it can get relatively good results, in some cases it can not. Considering further, we design a quality assurance algorithm HTS-rdm, which makes the feasible solution approximate to the optimal solution with a high probability.
+Due to the hardness of HTS problem, the optimal solution can not be obtained in polynomial time. In order to solve NP-hard problem, we propose a heuristic algorithm based on greedy idea, named HTS-greedy. However, this kind of algorithm usually has no guarantee of quality, although in some cases the solution is not bad, in some cases it is opposite. Furthermore, we design a quality assurance algorithm HTS-rdm, which makes the feasible solution approach to the optimal solution with probability 1- O($e^{-t^2}$) where t is the difference between the solution found by HTS-rdm and optimal solution.
 
 
 \subsection{Heuristic Alogrithm}\label{Heuristic}
 
-In this section, we propose a heuristic algorithm HTS-greedy. Using the greedy idea, the algorithm chooses the disk which stores $\phi(t_j)$ for each task $t_j$ and which has the minimum total $read-time$, and finally outputs one disk for each task.
+In this subsection, we will introduce the heuristic algorithm HTS-greedy specificly. Using the greedy idea, the HTS-greedy chooses the disk which stores $\phi(t_j)$ for each task $t_j$ and which has the minimum load, and finally outputs one disk for each task.
 
 
 %Alogoritm1
@@ -308,7 +326,7 @@ In this section, we propose a heuristic algorithm HTS-greedy. Using the greedy i
 	\caption{HTS-greedy}\label{HTS-greedy}
 \end{algorithm}
 
-Algorithm \ref{HTS-greedy:init} shows the detailed of HTS-greedy. Line 1-4 initializes $load_i$ = 0 and Result = \{\}, and $load_i$ denotes the total $read-time$ of the $disk_i$. Line 5-9 is to select disk for each task $t_j$. In line 6, function f is used to help task $t_j$ find all disks that store replicas of data $\phi(t_j)$. $d_{j1}$, $d_{j2}$,... $d_{j|C|}$ denote the $C$ disks.   Next, in line 7, the disk with minimum total $read-time$ is selected from the $C$ disks, and the $read-time$ caused by task $t_j$ is added to the $load_i$. Then put the task $t_j$ and disk $d_{j_l}$ into the set Result. One iteration completes a decision for a task, and the algorithm needs $\mathbb{T}$ iteration in total.
+Algorithm \ref{HTS-greedy:init} shows the detailed of HTS-greedy. Line 1-4 initializes $load_i$ = 0 and Result = \{\}, and $load_i$ denotes the total $read-time$ of the $disk_i$. Line 5-9 is to select a disk for each task $t_j$. In line 6, function f is used to help task $t_j$ find all disks that store replicas of data $\phi(t_j)$. Let $d_{j1}$, $d_{j2}$,... $d_{j|C|}$ denote the $C$ disks. Next, in line 7, the disk with minimum total $read-time$ is selected from the $C$ disks, and the $read-time$ caused by task $t_j$ is added to the $load_i$. Then put the task $t_j$ and disk $d_{j_l}$ into the set Result. After one iteration, the algorithm completes the decision for a task and it needs $\mathbb{T}$ iteration in total.
 
 Next, an example is given to illustrate the algorithm. In datacenter, there exits a set of heterogeneous disks $\mathbb{D}$= \{$d_1$, $d_2$, $d_3$, $d_4$\} with $read-time$ $T_1$ = 0.3,  $T_2$ = 0.1,  $T_3$ =0.2 and $T_4$ =0.2, respectively. Data set $\mathbb{M}$ = \{$m_1$, $m_2$, $m_3$, $m_4$\} are stored as Fig.\ref{fig1}. Obviously, each data has two replicas. When query tasks $\mathbb{T}$= \{$t_1$, $t_2$, $t_3$, $t_4$\} ($\phi(t_j)$ = j, 1 $\leq$j$ \leq$ 4) comes, the algorithm HTS-greedy runs as follows: %($\phi(t_j)$ = j (1 $\leq$j$ \leq$ 4, task $t_j$'s input is $m_j$ which equals the DATA-j in Fig.\ref{fig1}))
 
@@ -348,9 +366,9 @@ The final result is in Result and  Tasks will follow \{$\left \langle t_1, d_{1}
 
 \subsection{Randomized Alogrithm}\label{Randomized}
 
-In the previous section \ref{Heuristic}, we designed a greedy heuristic algorithm HTS-greedy to solve HTS problems. However, this algorithm does not have a good performance guarantee. Therefore, in this section, we propose a performance-guaranteed random algorithm HTS-rdm. By relaxing the HTS problem to HTS-relaxation problem, HTS-rdm uses linear programming to solve HTS-relaxation. The decomposition obtained by linear programming is a fraction rather than an integer, which represents the preference when selecting disks. Subsequently, we prove that the solution found by the HTS-rdm algorithm can approach the optimal solution with a high probability.
+In the previous section \ref{Heuristic}, we designed a greedy heuristic algorithm HTS-greedy to solve HTS problems. However, this algorithm does not have performance guarantee. Therefore, in this subsection, we propose a performance-guaranteed random algorithm HTS-rdm. By relaxing the HTS problem to HTS-relaxation problem, HTS-rdm uses linear programming to solve HTS-relaxation. The decomposition obtained by linear programming is a fraction rather than an integer, which represents the preference when selecting disks. Subsequently, we prove that the solution found by the HTS-rdm algorithm can approach the optimal solution with probability 1- O($e^{-t^2}$) where t is the difference between the solution found by HTS-rdm and optimal solution..
 
-\paragraph{\textbf{Relaxation of HTS Problem}} According to the previous analysis \ref{HTS}, this problem is NP-hard, which cannot be solved in polynomial time. Since the linear programming (LP) problem is solvable in polynomial time, a natural point of view is to relax the HTS problem to LP. The method is to change the range of variables from integer domain to real domain. As shown below, HTS-relaxtion, this process is named \textbf{relaxation}. The solution of HTS-relaxtion provides a lower bound for the original HTS problem(HTS is a minimization problem. For the maximization problem is on the contrary). Next, based on the solution of linear programming, the fractional solution is mapped back to integer in some way, which is named \textbf{rounding}. Based on relaxation-rounding, we propose HTS-rdm algorithm.
+\paragraph{\textbf{Relaxation of HTS Problem}} According to the previous analysis \ref{HTS}, this problem is NP-hard, which cannot be solved in polynomial time. But the linear programming (LP) problem is solvable in polynomial time, a natural point of view is to relax the HTS problem to LP. The method is to change the range of variables from integer domain \{0, 1\} to real domain [0, 1]. As shown below, HTS-relaxtion, this process is named \textbf{relaxation}. The solution of HTS-relaxtion provides a lower bound for the original HTS problem (HTS is a minimization problem. For the maximization problem is on the contrary). Next, based on the solution of linear programming, the fractional solution is mapped back to integer in some way, which is named \textbf{rounding}. Based on relaxation-rounding, we propose HTS-rdm algorithm.
 
  \begin{align}
  Min:&\;\;\;\;\;\max\limits_{i}\{\sum_{j}p_i^j*T_i\}\;[\rm{HTS-relaxtion}]\nonumber\\
@@ -360,7 +378,7 @@ In the previous section \ref{Heuristic}, we designed a greedy heuristic algorith
  &\;\;\;\;\;p_i^j \in[0, 1],\;for\;\forall i,j\nonumber
  \end{align}
  
- The detailed procedure of HTS-rdm algorithm is shown in Algorithm\ref{HTS-rdm}. Line 1 initializes the Result set, which stores the final result. In the second line, the HTS-relaxation problem is solved by linear programming technique. The third line uses rounding strategy to convert fractional solution to integer solution. Line 4-9 organize the results and output them. Then the task will read the disk according to the Result. The specific rounding strategies are as follows:
+ The detailed procedure of HTS-rdm algorithm is shown in Algorithm \ref{HTS-rdm}. Line 1 initializes the Result set, which stores the final result. In the second line, the HTS-relaxation problem is solved by linear programming tools. The third line uses rounding strategy to convert fractional solution to integer solution. Line 4-9 organize the results and output them. Then the task will read the disk according to the results. The specific rounding strategies are as follows:
  
  The value of \{$p_i^j$\}  $\in$ [0, 1] which shows the correlation between task $t_j$ and disk $d_i$. Therefore, we can select disk $d_i$ for task $t_j$ with  probability \{$p_i^j$\}. The method is to use the parameter $q_j$, which is randomly selected in (0,1]. If the $q_j$ $\in$ ($\sum p_{r-1}^{j}$, $\sum p_{r}^{j}$], then $I_r^j = 1$, otherwise, $I_i^j$ = 0 ($\forall$ $i$, $i \ne r$). This approach ensures only one disk can be selected for each task.%For each task $t_j$, the corresponding decision variables are \{$p_0^j$,$p_i^j$, ..., $p_i^j$\}. 
  \begin{algorithm}
@@ -387,26 +405,28 @@ In the previous section \ref{Heuristic}, we designed a greedy heuristic algorith
 
 \paragraph{\textbf{Analysis of HTS-rdm Algorithm}}
 
-In this section, we will prove that the HTS-rdm algorithm can approach the optimal solution with a high probability. Firstly, we prove that the difference between $read-time$ contributed by any tasks $t_j$ to $d_i$ and expectation is matingales sequence \cite{b12}. Secondly, Based on the matigales sequence, we use Azuma inequality to illustrate the bound between the feasible solution and the optimal solution.
+In this section, we will prove that the HTS-rdm algorithm can approach the optimal solution with a probability 1- O($e^{-t^2}$). Firstly, we prove that the difference between $read-time$ contributed by any tasks $t_j$ to $d_i$ and expectation is matingales sequence \cite{b12}. Secondly, Based on the matigales sequence, we use Azuma inequality to illustrate the bound between the feasible solution and the optimal solution.
 \begin{figure*}[!t]
 	\centering
-	\subfigure[Small-scale ]{\label{Fig:instance1}\includegraphics[height=1.6in]{fig3_1.eps}}\quad\quad %quad 表示图像的间距
-	\subfigure[Medium-scale ]{\label{Fig:instance2}\includegraphics[height=1.6in]{fig3_2.eps}}\quad\quad
-	\subfigure[Large-scale
-	]{\label{Fig:instance3}\includegraphics[height=1.6in]{fig3_4.eps}}
-	\vspace{-2ex}
-	\caption{Comparison of HTS-rdm and other Algorithm on different load. \ref{Fig:instance1} denotes Small-scale which has 20 task and 10 disks. \ref{Fig:instance2} denotes Medium-scale which has 200 task and 50 disks.
-	\ref{Fig:instance3} denotes Large-scale which has 1000 task and 100 disks. X-axis denotes the disk id. Y-axis denotes the total $read-time$ of each disk after deploying the tasks.}
-	\label{Fig:comparison}
-	\vspace{-3ex}
+	\subfigure[Small Workload ]{\label{Fig:instance1}\includegraphics[height=1.6in]{fig_instance1_1.eps}}\quad\quad %quad 表示图像的间距
+	\subfigure[Medium Workload ]{\label{Fig:instance2}\includegraphics[height=1.6in]{fig_instance2_2.eps}}\quad\quad
+	\subfigure[Large Workload
+	]{\label{Fig:instance3}\includegraphics[height=1.6in]{fig_instance3_1.eps}}
+	\vspace{-1ex}
+	\caption{Comparison of HTS-rdm and other Algorithm on different Workloads. \ref{Fig:instance1} denotes the results on Small Workload which has about 500 tasks. \ref{Fig:instance2} denotes the results on Medium Workload which has about 2000 tasks.
+	\ref{Fig:instance3} denotes the results on Large Workload which has 5000 tasks. X-axis denotes the disk. Y-axis denotes the load of each disk after running the three algorithms.}
+	\label{Fig:instance}
+	\vspace{-1ex}
 \end{figure*}
+
+
 \emph{Theorem 2:} Pr[SOL(HTS-rdm) - OPT(HTS) $\leq$ t] $\geq$ 1 - O($e^{-t^2}$).
 
 \emph{Proof:}
 
-SOL(HTS-rdm) means the solution found by HTS-rdm algorithm and  OPT(HTS) denotes the optimum solution of HTS problem.
+SOL(HTS-rdm) denotes the feasible solution found by HTS-rdm algorithm and  OPT(HTS) denotes the optimum solution of HTS problem.
 
-Firstly, task $t_j$'s contribution to disk $d_i$'s $read-time$ is expressed as:
+Firstly, task $t_j$'s contribution to disk $d_i$'s load is expressed as:
  \begin{align}
 &\;\;\;\;\;Z_i^j = I_i^j*T_i
 \end{align}
@@ -478,7 +498,7 @@ $\sum_{j = 1}^{|\mathbb{T}|} p_i^j*T_i$. Then,
 Pr\{S_i \leq U_i + t\} \geq 1- O(e^{-t^2}) \label{prove:SU}
 \end{align}
 
-$S_i$ denotes the total $read-time$ of disk $d_i$ which is the result of ILP. And $E_i$ denotes the expectation which is the result of LP. Because LP provides a lower bound for the optimal solution of ILP problem (HTS is a minimization problem. For the maximization problem is on the contrary), we have:
+$S_i$ denotes the load of disk $d_i$ which is the result of ILP. And $E_i$ denotes the expectation which is the result of LP. Because LP provides a lower bound for the optimal solution of ILP problem (HTS is a minimization problem. For the maximization problem is on the contrary), we have:
 
 
 
@@ -508,31 +528,63 @@ Pr\{SOL(HTS-rdm)<OPT (HTS)+t\} \geq 1 - O(e^{-t^2})\label{prove:result}
 Observed from the (\ref{prove:result}), the feasible solution SOL(HTS-rdm) found by the algorithm and the optimal solution OPT (HTS) are approximated by probability $1 - O(e^{-t^2})$. When hundreds of tasks are deployed with $1 - O(e^{-t^2})$ = 0.85, the value of $t$ is acceptable, only a few millisecond.\hfill $\qedsymbol$
 
 
-fdd
 \section{PERFORMANCE EVALUATION}\label{PERFORMANCE_EVALUATION}
+
+In this section, we implement our algorithms HTS-greedy and HTS-rdm, and compare our algorithms with storage-unaware scheduling algorithm. The results show that performance can be improved by 40\%.
 \subsection{Simulation Settings}\label{SCM}
+Usually, the general scheduling mechanism can not perceive the heterogeneity of the disk. For example, in Hadoop the scheduler cannot know the load of the disk when deploying the task. When selecting data replica for tasks, it is usually a random selection strategy, which we call Hadoop-default. We compare our proposed algorithms with it.
+
+\textbf{Workload:} Referring to the characteristics of Google traces \cite{b20}, we classify workload into three categories: Small Workload, Medium Workload and Large Workload, as shown in TABLE \ref{tab:workload}. In Small Workload, most of the jobs have 1-150 tasks. In has Large Workload, there are 50\% of the jobs that has over 50 tasks. The Medium Workload is in the middle of them.
+
+\begin{table}[htbp]
+	\caption{THE DIFFERENT TRACES USED FOR EXPERIMENT}
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			 \diagbox{Traces}{Number of tasks} & 1-150 & 150-500 & $\ge$ 500\\
+			\hline
+			Small Workload & 96\% & 2\% & 2\%\\
+			\hline
+			Medium Workload & 50\% & 40\% & 10\%\\
+			\hline
+			Large Workload & 40\% & 10\% & 50\%\\
+			\hline
+		\end{tabular}
+		\label{tab:workload}
+	\end{center}
+\end{table}
+
+\textbf{Setting:}
+In distributed file systems \cite{b19}, data is distributed uniformly on disk. Therefore, in this experimental environment, we uniformly deploy 200000 data with three data replicas by default, each data block size $\tau$ = 128MB. 500 disks are set up by default. The $read-time$ of the disk in the cluster is between 10 and 500 in ms. 
+
+
+\begin{figure*}[!t]
+	\centering
+	\subfigure[Results under varilous setting on Workloads ]{\label{Fig:completeWorkload}\includegraphics[height=1.6in]{figcomplete1_3.eps}}\quad\quad %quad 表示图像的间距
+	\subfigure[Results under different Heterogeneity cluter. ]{\label{Fig:completeHeter}\includegraphics[height=1.6in]{figcomplete2_3.eps}}\quad\quad
+	\subfigure[Results under varilous setting on reolicas number
+	]{\label{Fig:completeRep}\includegraphics[height=1.6in]{figcomplete3_3.eps}}
+	\vspace{-1ex}
+	\caption{Comparison of HTS-rdm and other Algorithm on different workloads, different heterogenelity cluter and different replica number $C$. \ref{Fig:completeWorkload} denotes effect of different workloads on completion time. \ref{Fig:completeHeter} denotes the completion time of the three algorithm on different Heterogeneity cluter. \ref{Fig:completeRep} denotes the completion time of the three algorithm when $C$ is different. Y-axis denotes the completion time of all tasks which has been normalized.}
+	\label{Fig:complete}
+	\vspace{-3ex}
+\end{figure*}
 
 \subsection{Simulation Results}
 
-%
-%\begin{figure}
-%	\centering
-%	\includegraphics[height=2in]{instance333.eps}
-%	\vspace{-2ex}
-%	\caption{An execution instace of the three algorithm}
-%\end{figure}
-
-
-
-
+For convenience of display, Fig.\ref{Fig:instance}. shows the results under different workloads upon 50 disks. X-axis denotes the disks. Y-axis denotes the load of each disk after running the three algorithms. The lower the peak of the curve, the better the result. The black dotted line represents the execution result of Algorithm HTS-greedy, and the green line represents the execution result of Algorithm HTS-rdm. Overall, we can see that our algorithm performs better than Hadoop-default. As shown in Fig.\ref{Fig:instance1}, in the small workload, the result of Hadoop-default has large fluctuations. This is because hadoop-default does not perceive the $read-time$ and load of the disk when selecting a replica for the task. Even if the tasks are deployed uniformly on disks, the disk with low performance may have a relatively large load. In Fig. \ref{Fig:instance1}, low performance disks will have high peaks. Completion of all parallel tasks is the end of the big data processing job. Therefore, the task reading data from the disk with poor performance will be the bottleneck of data processing job. For example, Hadoop-default causes the tasks of reading data from disk-2 to be the bottleneck of big data processing in the Fig.\ref{Fig:instance1} which is 654. Algorithms HTS-greedy and HTS-rdm can maintain roughly all disks at a lower load, less than 300. The reason is that HTS-greedy can select the disk to read for the task according to load of the disks and HTS-rdm can select the disk to read for the task according to load of the disks the performance of the disk. The maximum load of HTS-greedy algorithm is 261 in disk-12. Compared with the Hadoop-default, the performance is improved by 64\%. The maximum load of HTS-rdm algorithm is disk-4, and the corresponding load is 284. Compared with the baseline algorithm, the performance of HTS-rdm algorithm improves 57\%.
+As the number of tasks increases, the load on all disks increases. For example, in Fig.\ref{Fig:instance2}, when the number of tasks is about 2000, in Hadoop-default algorithm the maximum load is 2009 in disk-9. The results of HTS-greedy and HTS-rdm are that 784 in disk-8  and 770 in disk-6, respectively. The performance of our algorithm improves by 61\% and 62\%. 
+When the number of tasks becomes larger, in the large Workloads of Fig. \ref{Fig:instance3}, the maximum load obtained by the three algorithms are 5546,2205 and 2646. HTS-greedy increases by 60\% and HTS-rdm performance improves by 52\%.
+ 
+Next, we study the impact of different factors workloads, degree of heterogeneity and the number of data replicas, on the load upon the default configuration. In Fig.\ref{Fig:completeWorkload}, the horizontal X-axis represents different workloads, and the Y-axis represents the maximum load in the cluster, which has been normalized. In the previous part, impact of Workloads is that the overall load on disk shows an increasing trend as the Workloads gets larger. Fig.\ref{Fig:completeWorkload} shows the difference among the three workloads. The performance of our proposed algorithm can always be improved by 60\% on average. Next, we observed the effect of degree of heterogeneity on the load. We divide the heterogeneity of the cluster into two kinds. One is that the $read-time$ of disks is evenly distributed between 10ms and 100ms, named Low Heterogeneous Cluster. Another is High Heterogeneous Cluster, where the $read-time$ of disks is evenly distributed between 10ms and 500ms. Other conditions are configured by default. From Fig.\ref{Fig:completeHeter}, when the degree of heterogeneity gets larger, the overall load shows an increasing trend. This is because the large the degree of heterogeneity, the greater the performance difference between disks. This leads to hard balancing of disk loads. Through \ref{Fig:completeHeter}, we find that our algorithm can also improve the performance of 40-50\% in clusters with high heterogeneity. Finally, we analyze the impact of the amount of data replicas on disk load. We set the number of data replicas as 2, 3 and 5. Observe that the higher the number of replicas, the lower the disk load. Reason for it is that with the number of data replicas increasing, the probability of data being deployed on high performance disks increases. Selecting data on high-performance disks at this time will greatly accelerate the completion of tasks. When $C$ = 5, our algorithm can achieve 65\% performance improvement.
+ 
+ All in all,  the performance of the two algorithms proposed by us has reached an average of 55\% improvement over baseline algorithm on average under different conditions.
 
 
 
 \section{CONCLUSION}\label{CONCLUSION}
-None
-
+There is a trend of more and more heterogeneous disks in data centers. Due to the heterogeneity, a mismatch occurred between the upper software  and the lower hardware, which leads to the low performance of big data analysis. To minimize the latency of big data analysis. Based on this, we first formulate the heterogeneous storage awareness task scheduling problem, and prove the hardness of the problem. Then we propose two effective algorithms, heuristic algorithm and quality assurance random algorithm, to solve this problem. Experiments show that our algorithm speeds up the average completion time by 55\%. 
 \section*{Acknowledgment}
-
 None
 
 
@@ -556,10 +608,14 @@ None
 
 \bibitem{b14} Wang B, Jiang J, Yang G. Actcap: Accelerating mapreduce on heterogeneous clusters with capability-aware data placement[C]//2015 IEEE Conference on Computer Communications (INFOCOM). IEEE, 2015: 1328-1336.
 \bibitem{b15} Apache Spark. https://spark.apache.org, 2019.
-\bibitem{b16}Dell. https://www.dell.com/zh-cn,2019.
+\bibitem{b16}Seagate. https://www.seagate.com/cn/zh/.
 \bibitem{b17}Samsung. https://www.samsung.com/semiconductor/cn/, 2019.
 \bibitem{b18}Guo Z, Fox G, Zhou M. Investigation of data locality in mapreduce[C]//Proceedings of the 2012 12th IEEE/ACM International Symposium on Cluster, Cloud and Grid Computing (ccgrid 2012). IEEE Computer Society, 2012: 419-426.
 \bibitem{b19} Hdfs. https://hadoop.apache.org/hdfs, 2019.
+\bibitem{b20} 2012. Google Cluster Trace. https://code.google.com/p/googleclusterdata/.
+
+\bibitem{b25} F. Ahmad, S. Chakradhar A. Raghunathan and T. N. Vijaykumar. Tarazu: optimizing mapreduce on heterogeneous clusters. In ACM ASPLOS 2012.
+\bibitem{b26} R. Gandhi, D. Xie, Y. Charlie. PIKACHU: How to Rebalance Load in Optimizing MapReduce On Heterogeneous Clusters. In USENIX ATC 2013.
 
 \end{thebibliography}
 \end{document}

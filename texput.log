@@ -1,0 +1,24 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018/W32TeX) (preloaded format=latex 2018.7.11)  16 AUG 2019 16:02
+entering extended mode
+ restricted \write18 enabled.
+ Source specials enabled.
+ %&-line parsing enabled.
+**"conference_041818_1 - ¸±±¾.tex"
+
+! Emergency stop.
+<to be read again> 
+                   \protect 
+<*> "conference_041818_1 - ¸
+                            ±±¾.tex"
+*** (job aborted, file error in nonstop mode)
+
+ 
+Here is how much of TeX's memory you used:
+ 3 strings out of 492650
+ 126 string characters out of 6133410
+ 56308 words of memory out of 5000000
+ 3988 multiletter control sequences out of 15000+600000
+ 3640 words of font info for 14 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 3i,0n,3p,1b,6s stack positions out of 5000i,500n,10000p,200000b,80000s
+No pages of output.
