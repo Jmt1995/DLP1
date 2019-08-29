@@ -21,5 +21,11 @@ Workload-Aware Scheduling problem for Heterogeneous Storage (WASH)
 in big data analytics frameworks
 
 rely ... on ...
-
+so as that ... 由于
+Since 由于
+More specifically == for example 
+and ... as well as
 disks with poor read performance or heavy workload would elongate the I/O performance of analytical tasks.
+
+dataj is required by task-i
+

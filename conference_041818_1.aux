@@ -5,10 +5,16 @@
 \citation{b29}
 \citation{b30}
 \citation{b31}
+\citation{b6}
 \citation{b14}
 \citation{b15}
 \citation{b32}
 \citation{b33}
+\citation{b2}
+\citation{b3}
+\citation{b4}
+\citation{b5}
+\citation{b7}
 \citation{b25}
 \citation{b26}
 \citation{b35}
@@ -16,13 +22,25 @@
 \citation{b6}
 \citation{b7}
 \@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparisons of (1) reading time for one piece of data with unified size, i.e., 64MB, on various storage. (2) reading time for various I/O workloads.}}{1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Comparisons of (1) reading time for one piece of data with unified size (64MB) on various storage, i.e., SSD and HDD. (2) reading time for various I/O workloads, i.e., the number of data fetching concurrently.}}{1}}
 \newlabel{Fig:motivation}{{1}{1}}
-\citation{b1}
 \citation{b2}
 \citation{b3}
 \citation{b4}
 \citation{b5}
+\citation{b1}
+\citation{b6}
+\citation{b19}
+\citation{b8}
+\citation{b2}
+\citation{b3}
+\citation{b4}
+\citation{b5}
+\citation{b25}
+\citation{b26}
+\citation{b35}
+\citation{b36}
+\citation{b6}
 \citation{b6}
 \citation{b19}
 \citation{b7}
@@ -34,41 +52,46 @@
 \citation{b39}
 \citation{b19}
 \citation{b32}
+\citation{b19}
 \@writefile{toc}{\contentsline {section}{\numberline {II}RELATED WORKS}{2}}
 \newlabel{RELATED_WORKS}{{II}{2}}
 \@writefile{toc}{\contentsline {section}{\numberline {III}SYSTEM MODEL AND PROBLEM FORMULATION}{2}}
 \newlabel{SYSTEM_MODEL}{{III}{2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-A}}Background and motivation}{2}}
 \newlabel{AA}{{\unhbox \voidb@x \hbox {III-A}}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Two aspects that affect the task reading time: (a) type of storage, (b) Load of storage. Delicate method, i.e., Scheduling 2, improves 50\%, 33\% over scheduling 1, respectively.}}{3}}
+\citation{b9}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Two aspects that affect the task reading time: (a) Type of storage, (b) Load of storage. Delicate method, i.e., Scheduling \uppercase {ii}, improves 50\% and 33\% over scheduling \uppercase {i}, respectively.}}{3}}
 \newlabel{Fig:example}{{2}{3}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-B}}System Model}{3}}
-\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces THE MAJOR NOTATIONS USED IN THIS PAPER.}}{3}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces MAJOR NOTATIONS USED IN THIS PAPER.}}{3}}
 \newlabel{table-notations}{{I}{3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-C}}Workload-Aware Scheduling problem for Heterogeneous-storage $(\rm  {WASH})$}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {III-C}}Workload-Aware Scheduling problem for Heterogeneous storage devices $(\rm  {WASH})$}{3}}
 \newlabel{WASH}{{\unhbox \voidb@x \hbox {III-C}}{3}}
 \newlabel{task-cons}{{1}{3}}
 \newlabel{data-cons}{{2}{3}}
 \newlabel{def-cons}{{3}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {IV}DESIGN of ALGORITHMS FOR WASH PROBLEM}{4}}
-\newlabel{DESIGN_ALGORITHM}{{IV}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-A}}Heuristic Alogrithm}{4}}
-\newlabel{Heuristic}{{\unhbox \voidb@x \hbox {IV-A}}{4}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Design of Randomized Schema}{3}}
+\newlabel{DESIGN_ALGORITHM}{{IV}{3}}
 \newlabel{WASH-greedy:init}{{1}{4}}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces WASH-greedy}}{4}}
 \newlabel{WASH-greedy}{{1}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces An execution example of greedy algorithm }}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-A}}Greedy-based Inspiration}{4}}
+\newlabel{Heuristic}{{\unhbox \voidb@x \hbox {IV-A}}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Distribution of five pieces of data across 4 disks. }}{4}}
 \newlabel{fig1}{{3}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The process of WASH-greedy algorithm execution for the data stored as Fig.3\hbox {}. }}{4}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces The process of WASH-greedy for the data distributed in Fig.\nobreakspace  {}3\hbox {}. }}{4}}
 \newlabel{fig2}{{4}{4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-B}}Randomized Alogrithm}{4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {IV-B}}Randomized task scheduling}{4}}
 \newlabel{Randomized}{{\unhbox \voidb@x \hbox {IV-B}}{4}}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\unhbox \voidb@x \hbox {IV-B}0a}\textbf  {Relaxation of WASH Problem}}{4}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\unhbox \voidb@x \hbox {IV-B}0a}\textbf  {Relaxation of WASH}}{4}}
+\citation{b43}
 \citation{b12}
 \citation{b13}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces WASH-rdm}}{5}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces $r$WASH}}{5}}
 \newlabel{WASH-rdm}{{2}{5}}
-\@writefile{toc}{\contentsline {paragraph}{\numberline {\unhbox \voidb@x \hbox {IV-B}0b}\textbf  {Analysis of WASH-rdm Algorithm}}{5}}
+\@writefile{toc}{\contentsline {paragraph}{\numberline {\unhbox \voidb@x \hbox {IV-B}0b}\textbf  {$r$WASH schema}}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Analysis of Algorithm $r$WASH}{5}}
+\newlabel{Analysis}{{V}{5}}
 \newlabel{prove:expect}{{5}{5}}
 \newlabel{prove:diff}{{6}{5}}
 \newlabel{prove:L_margin}{{7}{5}}
@@ -84,79 +107,81 @@
 \newlabel{sub@Fig:instance2}{{(b)}{6}}
 \newlabel{Fig:instance3}{{5(c)}{6}}
 \newlabel{sub@Fig:instance3}{{(c)}{6}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Comparison of WASH-rdm and other Algorithm on different Workloads. 5(a)\hbox {} denotes the results on Small Workload which has about 500 tasks. 5(b)\hbox {} denotes the results on Medium Workload which has about 2000 tasks. 5(c)\hbox {} denotes the results on Large Workload which has 5000 tasks. X-axis denotes the disk. Y-axis denotes the load of each disk after running the three algorithms.}}{6}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Characteristics of I/O workloads among 50 disks under different workloads. $r$WASH improves by up to 57\%, 51\% and 57\% over Hadoop-default, as well as 15\%, 23\% and 35\% over WASH-greedy in terms of the maximal task reading time for concurrent data fetching.}}{6}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Small Workload }}}{6}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Medium Workload }}}{6}}
 \@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Large Workload }}}{6}}
 \newlabel{Fig:instance}{{5}{6}}
-\newlabel{prove:azuma1}{{12}{6}}
-\newlabel{prove:azuma3}{{13}{6}}
-\newlabel{prove:SU}{{14}{6}}
-\newlabel{prove:OPT}{{15}{6}}
-\newlabel{prove:Emax}{{17}{6}}
-\newlabel{prove:SOL-OPT}{{18}{6}}
-\newlabel{prove:result}{{19}{6}}
-\@writefile{toc}{\contentsline {section}{\numberline {V}PERFORMANCE EVALUATION}{6}}
-\newlabel{PERFORMANCE_EVALUATION}{{V}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {V-A}}Simulation Settings}{6}}
-\newlabel{SCM}{{\unhbox \voidb@x \hbox {V-A}}{6}}
-\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces THE DIFFERENT TRACES USED FOR EXPERIMENT}}{6}}
-\newlabel{tab:workload}{{II}{6}}
-\citation{b11}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {V-B}}Simulation Results}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {VI}CONCLUSION}{7}}
-\newlabel{CONCLUSION}{{VI}{7}}
-\newlabel{ILP}{{20}{7}}
-\citation{b9}
-\bibcite{b1}{1}
-\bibcite{b2}{2}
-\bibcite{b3}{3}
-\bibcite{b4}{4}
-\bibcite{b5}{5}
-\bibcite{b6}{6}
-\bibcite{b7}{7}
-\bibcite{b8}{8}
-\bibcite{b9}{9}
-\bibcite{b10}{10}
-\bibcite{b11}{11}
-\bibcite{b12}{12}
-\bibcite{b13}{13}
-\bibcite{b14}{14}
-\bibcite{b15}{15}
-\bibcite{b16}{16}
-\newlabel{Fig:completeWorkload}{{6(a)}{8}}
-\newlabel{sub@Fig:completeWorkload}{{(a)}{8}}
-\newlabel{Fig:completeHeter}{{6(b)}{8}}
-\newlabel{sub@Fig:completeHeter}{{(b)}{8}}
-\newlabel{Fig:completeRep}{{6(c)}{8}}
-\newlabel{sub@Fig:completeRep}{{(c)}{8}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Comparison of WASH-rdm and other Algorithm on different workloads, different heterogenelity cluter and different replica number $C$. 6(a)\hbox {} denotes effect of different workloads on reading time. 6(b)\hbox {} denotes the reading time of the three algorithm on different Heterogeneity cluter. 6(c)\hbox {} denotes the reading time of the three algorithm when $C$ is different. Y-axis denotes the reading time of all tasks which has been normalized.}}{8}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Results under varilous setting on Workloads }}}{8}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Results under different Heterogeneity cluter. }}}{8}}
-\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Results under varilous setting on reolicas number }}}{8}}
-\newlabel{Fig:complete}{{6}{8}}
-\newlabel{enlarge-cons}{{23}{8}}
-\newlabel{WASH-ILP}{{24}{8}}
+\newlabel{prove:azuma3}{{12}{6}}
+\newlabel{prove:SU}{{13}{6}}
+\newlabel{prove:OPT}{{14}{6}}
+\newlabel{prove:Emax}{{16}{6}}
+\newlabel{prove:SOL-OPT}{{17}{6}}
+\newlabel{prove:result}{{18}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}PERFORMANCE EVALUATION}{6}}
+\newlabel{PERFORMANCE_EVALUATION}{{VI}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {VI-A}}Simulation Setup}{6}}
+\newlabel{SCM}{{\unhbox \voidb@x \hbox {VI-A}}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\unhbox \voidb@x \hbox {VI-B}}Simulation Results}{6}}
+\citation{b44}
+\newlabel{Fig:completeWorkload}{{6(a)}{7}}
+\newlabel{sub@Fig:completeWorkload}{{(a)}{7}}
+\newlabel{Fig:completeHeter}{{6(b)}{7}}
+\newlabel{sub@Fig:completeHeter}{{(b)}{7}}
+\newlabel{Fig:completeRep}{{6(c)}{7}}
+\newlabel{sub@Fig:completeRep}{{(c)}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Results under various scenarios with different I/O workloads, I/O performance and the number of data replicas. $r$WASH improves 51\%, 50\% and 53\% over Hadoop-default, as well as 20\%, 26\% and 30\% over WASH-greedy in terms of the maximal task reading time.}}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Results under various I/O workloads }}}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Results under various I/O performance}}}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Results under various number of data replica }}}{7}}
+\newlabel{Fig:complete}{{6}{7}}
+\newlabel{Fig:unbalance1}{{7(a)}{7}}
+\newlabel{sub@Fig:unbalance1}{{(a)}{7}}
+\newlabel{Fig:unbalance2}{{7(b)}{7}}
+\newlabel{sub@Fig:unbalance2}{{(b)}{7}}
+\newlabel{Fig:unbalance3}{{7(c)}{7}}
+\newlabel{sub@Fig:unbalance3}{{(c)}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Results for various I/O workloads under skewed data distribution. Our $r$WASH improves by up to 27\%, 41\% and 34\% over Hadoop-default, as well as 38\%, 32\% and 37\% over WASH-greesy in terms of the maximal task reading time. }}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(a)}{\ignorespaces {Small Workload }}}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(b)}{\ignorespaces {Medium Workload }}}{7}}
+\@writefile{lof}{\contentsline {subfigure}{\numberline{(c)}{\ignorespaces {Large Workload }}}{7}}
+\newlabel{Fig:unbalance}{{7}{7}}
+\bibstyle{IEEEtran}
+\bibdata{DLP}
+\bibcite{b40}{1}
+\bibcite{b27}{2}
+\bibcite{b28}{3}
+\bibcite{b29}{4}
+\bibcite{b30}{5}
+\bibcite{b31}{6}
+\bibcite{b6}{7}
+\bibcite{b14}{8}
+\bibcite{b15}{9}
+\bibcite{b32}{10}
+\bibcite{b33}{11}
+\bibcite{b2}{12}
+\bibcite{b3}{13}
+\bibcite{b4}{14}
+\bibcite{b5}{15}
+\bibcite{b7}{16}
+\bibcite{b25}{17}
+\bibcite{b26}{18}
+\bibcite{b35}{19}
+\bibcite{b36}{20}
+\bibcite{b1}{21}
+\bibcite{b19}{22}
+\bibcite{b8}{23}
+\bibcite{b42}{24}
+\bibcite{b41}{25}
+\bibcite{b37}{26}
+\bibcite{b38}{27}
+\bibcite{b39}{28}
+\bibcite{b9}{29}
+\bibcite{b43}{30}
+\bibcite{b12}{31}
+\bibcite{b13}{32}
+\bibcite{b20}{33}
+\bibcite{b44}{34}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}CONCLUSION}{8}}
+\newlabel{CONCLUSION}{{VII}{8}}
 \@writefile{toc}{\contentsline {section}{References}{8}}
-\bibcite{b17}{17}
-\bibcite{b18}{18}
-\bibcite{b19}{19}
-\bibcite{b20}{20}
-\bibcite{b25}{21}
-\bibcite{b26}{22}
-\bibcite{b27}{23}
-\bibcite{b28}{24}
-\bibcite{b29}{25}
-\bibcite{b30}{26}
-\bibcite{b31}{27}
-\bibcite{b32}{28}
-\bibcite{b33}{29}
-\bibcite{b34}{30}
-\bibcite{b35}{31}
-\bibcite{b36}{32}
-\bibcite{b37}{33}
-\bibcite{b38}{34}
-\bibcite{b39}{35}
-\bibcite{b40}{36}
-\bibcite{b41}{37}
-\bibcite{b42}{38}
