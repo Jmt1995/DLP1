@@ -157,6 +157,11 @@ P.~Stuedi, A.~Trivedi, J.~Pfefferle, R.~Stoica, B.~Metzler, N.~Ioannou, and
   data processing.'' \emph{IEEE Data Eng. Bull.}, vol.~40, no.~1, pp. 38--49,
   2017.
 
+\bibitem{b45}
+D.~Cobb and A.~Huffman, ``Nvm express and the pci express ssd revolution,'' in
+  \emph{Intel Developer Forum}.\hskip 1em plus 0.5em minus 0.4em\relax Intel,
+  2012.
+
 \bibitem{b38}
 G.~Beutler and E.~Brockmann, ``International gps service for geodynamics,'' in
   \emph{Proceedings of the 1993 IGS Workshop}, vol. 369.\hskip 1em plus 0.5em

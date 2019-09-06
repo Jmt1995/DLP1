@@ -105,7 +105,7 @@ However, due to the fact that local disks might have high I/O workloads, previou
 \textbf{Fetching Data Remotely.} 
 In heterogeneous cluster, data fetching remotely from those devices with higher performance on I/O could be better than that from local ones.
 %since tasks fetching data from high-performance disks of other nodes might have low reading time, considering data locality alone is not enough to speed up analytical tasks. 
-However, most of the researches only focused on heterogeneous computing resources \cite{b25} \cite{b26} \cite{b35} \cite{b36} \cite{b6}, but ignored the heterogeneous-storage devices. For example, Xu \cite{b6} considered the current usability of underlying hardware (CPU, memory, I/O), but didn't consider the performance on different storage hardware. 
+However, most of the researches only focused on heterogeneous computing resources \cite{b25} \cite{b26} \cite{b35} \cite{b36} \cite{b6}, but ignored the heterogeneous storage devices. For example, Xu \cite{b6} considered the current usability of underlying hardware (CPU, memory, I/O), but didn't consider the performance on different storage hardware. 
 In Hadoop 2.3, HDFS\cite{b19} took the heterogeneous storage feature into consideration, which supported six storage strategies. Users could choose one of these strategies to store files according to their demands.
 %is proposed considers heterogeneous storage devices and supports multiple storage strategies. One of the storage strategies is named , that is, one replicas is stored in SSD, and the rest is stored in HDD. 
 %However, the task scheduling strategy is not aware of the disk's performance.
@@ -123,7 +123,7 @@ In this section, we first introduce the background of heterogeneous storage devi
 
 \subsection{Background and motivation}\label{AA}
 
-In data center, Hadoop and Spark widely use heterogeneous storage devices to support different workloads. For example, in MapReduce framework, Shuffle stage \cite{b42} \cite{b41} usually has a large requirement on I/O for storing intermediate data. In order to meet this demand, Crail \cite{b37} is proposed to be a high-performance I/O architecture for data processing, using NVMe SSD as a supplementary to speed up the Shuffle phase.
+In data center, Hadoop and Spark widely use heterogeneous storage devices to support different workloads. For example, in MapReduce framework, Shuffle stage \cite{b42} \cite{b41} usually has a large requirement on I/O for storing intermediate data. In order to meet this demand, Crail \cite{b37} is proposed to be a high-performance I/O architecture for data processing, using NVMe SSD \cite{b45} as a supplementary to speed up Shuffle phase.
 %with the number of heterogeneous disks increasing, traditional scheduling may lead to disk bottleneck. Before analysing the problem, we will introduce data and replicas as well as job and tasks first.
 
 \textbf{Data and replicas.} In data analytics system, large volume of data is generated, such as GPS information\cite{b38}, system logs\cite{b39}, etc. Due to their massive sizes, a large file is often divided into multiple fixed-size pieces, i.e., one $data$ block, stored in a distributed file system such as HDFS \cite{b19}, whose uniform size is often 64MB or 128MB. However, the disk is usually unreliability, e.g., about 5 to 6 disks are damaged per day in a cluster of 5,000 machines \cite{b32}. In order to avoid such data loss, traditional approach is to keep multiple $replicas$ of each data in storage, e.g., three backups across two racks \cite{b19}. Then, one piece of data will be stored in multiple disks with various I/O performance.
@@ -137,7 +137,7 @@ However, traditional schedulers for data analytics are usually unaware of disks'
 
 \textbf{Motivation and example.}
 %In order to improve the performance of data analytics tasks, tasks should read data from high performance and low load disks. 
-We will use a simple example to illustrate the importance on choosing heterogeneous storage devices. As shown in Fig.~\ref{Fig:example}, there are two types of disks, i.e., SSD and HDD. The reading time for a data replica from SSD and HDD is $T_1$ = 0.2 and $T_2$ = 0.4, respectively. 
+We will use a simple example to illustrate the importance on choosing heterogeneous storage devices. As shown in Fig.~\ref{Fig:example}, there are two types of disks, i.e., SSD and HDD. The reading time for a data replica from SSD and HDD is $T_1 = 0.2s$ and $T_2 = 0.4s$, respectively. 
 \begin{itemize}
 	\item The traditional scheduler deploys tasks like scheduling \uppercase\expandafter{\romannumeral1} of Fig.~\ref{Fig:example}(a), whose reading time for a data replica is $0.4s$ while the reading time of the delicate method, i.e., scheduling \uppercase\expandafter{\romannumeral2}, is $0.2s$. Obviously, the task that reads data from SSD has a shorter reading time than that from HDD, i.e., scheduling \uppercase\expandafter{\romannumeral2} is better than scheduling \uppercase\expandafter{\romannumeral1}.
 
@@ -162,14 +162,14 @@ This simple case reveals two important findings: (1) The types of heterogeneous 
 \centering
     \begin{minipage}{4.78cm}
         \includegraphics[height = 2.8cm]{fig_example1_5.eps}
-        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral1} : $max$\{0, $0.4s$\},\quad}}\\
-        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral2} : $max$\{$0.2s$, 0\}.\quad}}\\
+        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral1} : $max$\{$0s$, $0.4s$\},\quad}}\\
+        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral2} : $max$\{$0.2s$, $0s$\}.\quad}}\\
          \centerline{(a) Type of storage.}\\
     \end{minipage}
     \begin{minipage}{3.95cm}
         \includegraphics[height = 2.8cm]{fig_example2_4.eps}
-        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral1} : $max$\{$0.2s*3$, 0\},\quad}}\\
-        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral2} : $max$\{$0.2s*2$, 0.4s\}.}}\\
+        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral1} : $max$\{$0.2s*3$, $0s$\},\quad}}\\
+        \centerline{\footnotesize{\uppercase\expandafter{\romannumeral2} : $max$\{$0.2s*2$, $0.4s$\}.}}\\
          \centerline{(b) Load of storage.\quad}\\
     \end{minipage}
     \vspace{-0.4cm}
@@ -311,29 +311,29 @@ Algorithm \ref{WASH-greedy:init} shows the details of WASH-greedy. Line 1 initia
 
 %Next, an example is given to illustrate the algorithm. In datacenter, there exits a set of heterogeneous disks $\mathcal{D}$= \{$d_1$, $d_2$, $d_3$, $d_4$\} with $T_i$ $T_1$ = 0.3,  $T_2$ = 0.1,  $T_3$ =0.2 and $T_4$ =0.2, respectively. Data set $\mathbb{M}$ = \{$m_1$, $m_2$, $m_3$, $m_4$\} are stored as Fig.\ref{fig1}. Obviously, each data has two replicas. When query tasks $\mathcal{T}$= \{$t_1$, $t_2$, $t_3$, $t_4$\} ($\phi_j$ = j, 1$\leq$j$ \leq$4) comes, the algorithm WASH-greedy runs as follows: %($\phi_j$ = j (1 $\leq$j$ \leq$ 4, task $t_j$'s input is $m_j$ which equals the DATA-j in Fig.\ref{fig1}))
 
-Next, we use an example to illustrate the process of WAHS-greedy. In data center, there exits four heterogeneous disks, i.e., $\mathcal{D}$= \{1, 2, 3, 4\}, with $T_1$ = 0.2,  $T_2$ = 0.25,  $T_3$ = 0.4 and $T_4$ = 0.6, respectively. Furthermore, five pieces of data are stored as shown in Fig.~\ref{fig1}. When a job with five tasks comes, algorithm WASH-greedy runs as follows: %Obviously, each data has two replicas. When query tasks $\mathcal{T}$= \{1, 2, 3, 4\} ($\phi_j$ = j, 1$\leq$j$ \leq$4) comes, the algorithm WASH-greedy runs as follows: %($\phi_j$ = j (1 $\leq$j$ \leq$ 4, task $t_j$'s input is $m_j$ which equals the DATA-j in Fig.~\ref{fig1}))
+Next, we use an example to illustrate the process of WAHS-greedy. In data center, there are four heterogeneous disks, i.e., $\mathcal{D}$= \{1, 2, 3, 4\}, with $T_1 = 0.2s$,  $T_2 = 0.25s$,  $T_3 = 0.4s$ and $T_4 = 0.6s$, respectively. Furthermore, five pieces of data are stored as shown in Fig.~\ref{fig1}. When a job with five tasks comes, algorithm WASH-greedy runs as follows: %Obviously, each data has two replicas. When query tasks $\mathcal{T}$= \{1, 2, 3, 4\} ($\phi_j$ = j, 1$\leq$j$ \leq$4) comes, the algorithm WASH-greedy runs as follows: %($\phi_j$ = j (1 $\leq$j$ \leq$ 4, task $t_j$'s input is $m_j$ which equals the DATA-j in Fig.~\ref{fig1}))
 
 Initial: Result = \{\}
 \begin{itemize}
 	\item \textbf{Round 1}:for task-1:
 	 f($\phi_1$) = \{1, 2\} \\
-	 $1$ = $\arg\min$\{$T_1$ = 0.2, $T_2$ = 0.25\}\\
+	 $1$ = $\arg\min$\{$T_1 = 0.2s$, $T_2 = 0.25s$\}\\
 	Result = Result $\cup$ $\left \langle 1, 1\right \rangle$ = \{$\left \langle 1, 1\right \rangle$\}
 	\item \textbf{Round 2}:for task-2:
 	f($\phi_2$) = \{2, 3\}\\
-	$2$ = $\arg\min$\{$T_2$ = 0.25, $T_3$ = 0.4\}\\
+	$2$ = $\arg\min$\{$T_2 = 0.25s$, $T_3 = 0.4s$\}\\
 	Result = Result $\cup$ $\left \langle 2, 2\right \rangle$ = \{$\left \langle 1, 1\right \rangle$, $\left \langle 2, 2\right \rangle$\}
 	\item \textbf{Round 3}:for task-3:
 	f($\phi_3$) = \{3, 4\}\\
-	$3$ = $\arg\min$\{$T_3$ = 0.4, $T_4$ = 0.6\}\\
+	$3$ = $\arg\min$\{$T_3 = 0.4s$, $T_4 = 0.6s$\}\\
 	Result = Result $\cup$ $\left \langle 3, 3\right \rangle$ = \{$\left \langle 1, 1\right \rangle$, $\left \langle 2, 2\right \rangle$,  $\left \langle 3, 3\right \rangle$\}
 	\item \textbf{Round 4}:for task  $4$:
 	f($\phi_4$) = \{1, 4\}\\
-	$1$ = $\arg\min$\{$T_1$ = 0.2, $T_4$ = 0.6\}\\
+	$1$ = $\arg\min$\{$T_1 = 0.2s$, $T_4 = 0.6s$\}\\
 	Result = Result $\cup$ $\left \langle 4, 1\right \rangle$ = \{$\left \langle 1, 1\right \rangle$, $\left \langle 2, 2\right \rangle$,  $\left \langle 3, 3\right \rangle$, $\left \langle 4, 1\right \rangle$\}	
 	\item \textbf{Round 5}:for task-5:
 	f($\phi(5)$) = \{2, 4\}\\
-	$2$ = $\arg\min$\{$T_2$ = 0.25, $T_4$ = 0.6\}\\
+	$2$ = $\arg\min$\{$T_2 = 0.25s$, $T_4 = 0.6s$\}\\
 	Result $\cup$ $\left \langle 5, 2\right \rangle$ = \{$\left \langle 1, 1\right \rangle$, $\left \langle 2, 2\right \rangle$,  $\left \langle 3, 3\right \rangle$, $\left \langle 4, 1\right \rangle$, $\left \langle 5, 2\right \rangle$\}	
 \end{itemize}
 
@@ -346,13 +346,13 @@ Initial: Result = \{\}
 \end{figure}
 \begin{figure}[!t]
 	\centering
-	\includegraphics[height=0.8in]{fig2_3.eps}
+	\includegraphics[height=0.8in]{fig2_4.eps}
 	\caption{The process of WASH-greedy for the data distributed in Fig.~\ref{fig1}. }
 	\label{fig2}
 	\vspace{-0.4cm}
 \end{figure}
 
-Then, four tasks read data according to the strategy of \{$\left \langle 1, 3\right \rangle$, $\left \langle 2, 1\right \rangle$,  $\left \langle 3, 2\right \rangle$, $\left \langle 4, 1\right \rangle$, $\left \langle 5, 2\right \rangle$, $\left \langle 6, 1\right \rangle$\}.The specific steps of WASH-greedy algorithm is shown in Fig.~\ref{fig2}.
+Then, four tasks read data according to the strategy of \{$\left \langle 1, 1\right \rangle$, $\left \langle 2, 2\right \rangle$,  $\left \langle 3, 3\right \rangle$, $\left \langle 4, 1\right \rangle$, $\left \langle 5, 2\right \rangle$\}.The specific steps of WASH-greedy algorithm is shown in Fig.~\ref{fig2}.
 
 Due to the fact that WASH-greedy always shows its preference on the disks with higher I/O performance for each task, such algorithm may easily overload high performance disks. Thus, WASH-greedy fails to  avoid the disks bottleneck, elongating the overall latency for data analytics.
 
@@ -365,12 +365,12 @@ In this subsection, we design a randomized algorithm, named $r$WASH, which avoid
 
 
 
-\paragraph{\textbf{Relaxation of WASH}} A linear programming (LP) problem is solvable within polynomial time as well as shows a lower bound for the original problem. A natural point of view is to relax the WASH problem to a LP problem. The method is to change the domain of decision variables from integer domain \{0, 1\} to real one [0, 1], i.e., WASH-relaxation. Such process is named $Relaxation$. Detailed description is illustrated as follows: 
+\paragraph{\textbf{Relaxation of WASH}} A linear programming (LP) problem is solvable within polynomial time as well as shows a lower bound for the corresponding integer linear programming (ILP) problem. A natural point of view is to relax the WASH problem to a LP problem. The method is to change the domain of decision variables from integer domain \{0, 1\} to real one [0, 1], i.e., WASH-relaxation. Such process is named $Relaxation$. Detailed description is illustrated as follows: 
 %According to the previous analysis \ref{WASH}, this problem is NP-hard, whose optimal source disk for each task cannot be obtained within polynomial time. But 
 %The solution of WASH-relaxation provides a lower bound for the original WASH problem (WASH is a minimization problem. For the maximization problem is on the contrary).
 \vspace{-0.2cm}
  \begin{align}
- Min:&\;\;\;\;\;\max\limits_{i}\{\sum_{j}p_i^j*T_i\}\;\;\;\;\;\;[\rm{WASH-relaxtion}]\nonumber\\
+ Min:&\;\;\;\;\;\max\limits_{i}\{\sum_{j}p_i^j*T_i\}\;\;\;\;\;\;[\rm{WASH-relaxation}]\nonumber\\
  s.t. 
  &\;\;\;\;\;\sum_{i}p_i^j = 1,\;\;\forall j,\nonumber\\
  &\;\;\;\;\;p_i^j \leq \pi_{\phi_j}^{i},\;\;\forall i,j,\nonumber\\
@@ -407,8 +407,8 @@ Then, we use linear programming technique to solve WASH-relaxation whose solutio
  \end{algorithm}
  \paragraph{\textbf{$r$WASH schema}} 
 
-Thus, our $r$WASH uses these fractions as probabilities to choose source disk for each disk. In this way, the solution in fractional domain is mapped back to integer domain, which is named $Rounding$. 
-Based on relaxation-rounding strategy, we propose $r$WASH. 
+Thus, our $r$WASH uses these fractions as probabilities to choose source disk for each task. In this way, the solution in fractional domain is mapped back to integer domain, which is named $Rounding$. 
+Based on $Relaxation-Rounding$ strategy, we propose $r$WASH. 
 
 The detailed of $r$WASH is shown in Algorithm \ref{WASH-rdm}. Line 1 initializes the set of $Result$. In line 2, we use linear programming technique to solve WASH-relaxation. For the third line, our proposed $r$WASH uses rounding strategy to convert fractional solutions into integer solutions. The specific rounding strategy is shown as follows:
  
@@ -419,12 +419,12 @@ In order to obtain more precise solution, we use rounding strategy twice, i.e., 
 
 \begin{figure*}[!t]
 	\centering
-	\subfigure[Small Workload ]{\label{Fig:instance1}\includegraphics[height=1.6in]{fig_instance1_8.eps}}\quad\quad %quad 表示图像的间距
-	\subfigure[Medium Workload ]{\label{Fig:instance2}\includegraphics[height=1.6in]{fig_instance2_8.eps}}\quad\quad
+	\subfigure[Small Workload ]{\label{Fig:instance1}\includegraphics[height=1.55in]{fig_instance1_12.eps}}\quad\quad %quad 表示图像的间距
+	\subfigure[Medium Workload ]{\label{Fig:instance2}\includegraphics[height=1.55in]{fig_instance2_12.eps}}\quad\quad
 	\subfigure[Large Workload
-	]{\label{Fig:instance3}\includegraphics[height=1.6in]{fig_instance3_8.eps}}
+	]{\label{Fig:instance3}\includegraphics[height=1.5in]{fig_instance3_12.eps}}
 	\vspace{-1ex}
-	\caption{Characteristics of I/O workloads among 50 disks under different workloads. $r$WASH improves by up to 57\%, 51\% and 57\% over Hadoop-default, as well as 15\%, 23\% and 35\% over WASH-greedy in terms of the maximal task reading time for concurrent data fetching.}
+	\caption{Characteristics of I/O workloads among 50 disks under different workloads. $r$WASH improves by up to 69\%, 50\% and 56\% over Hadoop-default, as well as 42\%, 25\% and 30\% over WASH-greedy in terms of the maximal task reading time for concurrent data fetching.}
 	\label{Fig:instance}
 %	\vspace{-1ex}
 \end{figure*}
@@ -467,7 +467,8 @@ Q_i^j = Z_i^j - E[Z_i^j].\label{prove:diff}
 
 %we denote by $L_i^{\mathcal{|T|}}$ the sum of $Q_i^j$ in disk $i$, i.e., 
 \vspace{-0.2cm}
-For all tasks, we denote by $L_i^{\mathcal{|T|}}$ the sum of the difference between $Z_i^j$ and $E[Z_i^j]$, i.e., $Q_i^j$, 
+%For each disk-$i$, we denote by $L_i^{\mathcal{|T|}}$ the sum of the difference between $Z_i^j$ and $E[Z_i^j]$, i.e., $Q_i^j$, 
+For each disk-$i$, we denote by $L_i^{\mathcal{|T|}}$ the sum of $Q_i^j$, $\forall j \in \mathcal{T}$, i.e., 
  \vspace{-0.1cm}
 \begin{align}
 L_i^{\mathcal{|T|}} = \sum\nolimits_{j = 1}^{\mathcal{|T|}} Q_i^j
@@ -528,7 +529,7 @@ Pr\{S_i \leq E_i + t\} \geq 1- O(e^{-t^2}). \label{prove:SU}
 \end{align}
 
 \vspace{-0.2cm}
-$S_i$ represents the actual load of disk-$i$, and $E_i$ denotes the solution of LP, i.e., the expectation load of disk-$i$. Since LP provides a lower bound of the ILP problem (WASH is a minimization problem), $\forall x \in \mathcal{D}$, we have
+$S_i$ represents the actual load of disk-$i$, and $E_i$ denotes the solution of LP as well as the expectation load of disk-$i$. Since LP provides a lower bound of the ILP problem (WASH is a minimization problem), $\forall x \in \mathcal{D}$, we have
 \vspace{-0.2cm}
 \begin{align}
 E_x \leq OPT.\label{prove:OPT}
@@ -567,7 +568,7 @@ Then, the result of Inequality (\ref{prove:result}) can be improved to $1 - O(e^
 
 \section{PERFORMANCE EVALUATION}\label{PERFORMANCE_EVALUATION}
 %, with $r$WASH and storage-unaware scheduling algorithm.
-In this section, we conduct extensive simulations for evaluating $r$WASH. The results of our extensive simulations show that $r$WASH improves by up to 55\% and 25\%, respectively, compared with typically and widely used storage-unaware scheduling algorithm as well as WASH-greedy.
+In this section, we conduct extensive simulations for evaluating $r$WASH. The results of our extensive simulations show that $r$WASH improves by up to 55\% and 30\%, respectively, compared with typically and widely used storage-unaware scheduling algorithm as well as WASH-greedy.
 
 \subsection{Simulation Setup}\label{SCM}
 Traditional scheduling mechanisms are often unaware of the types and I/O workloads of storage devices. For example, the default scheduler in Hadoop, whose abbreviation is Hadoop-default, selects source devices storing the related data of tasks randomly. In our extensive simulations, we compare $r$WASH with WASH-greedy and Hadoop-default for evaluation.
@@ -578,12 +579,12 @@ Traditional scheduling mechanisms are often unaware of the types and I/O workloa
 
 \begin{figure*}[!t]
 	\centering
-	\subfigure[Results under various I/O workloads ]{\label{Fig:completeWorkload}\includegraphics[height=1.6in]{figcomplete1_7.eps}}\quad\quad %quad 表示图像的间距
-	\subfigure[Results under various I/O performance]{\label{Fig:completeHeter}\includegraphics[height=1.6in]{figcomplete2_7.eps}}\quad\quad
+	\subfigure[Results under various I/O workloads ]{\label{Fig:completeWorkload}\includegraphics[height=1.6in]{figcomplete1_8.eps}}\quad\quad %quad 表示图像的间距
+	\subfigure[Results under various I/O performance]{\label{Fig:completeHeter}\includegraphics[height=1.6in]{figcomplete2_8.eps}}\quad\quad
 	\subfigure[Results under various number of data replica
-	]{\label{Fig:completeRep}\includegraphics[height=1.6in]{figcomplete3_7.eps}}
+	]{\label{Fig:completeRep}\includegraphics[height=1.6in]{figcomplete3_8.eps}}
 	\vspace{-1ex}
-	\caption{Results under various scenarios with different I/O workloads, I/O performance and the number of data replicas. $r$WASH improves 51\%, 50\% and 53\% over Hadoop-default, as well as 20\%, 26\% and 30\% over WASH-greedy in terms of the maximal task reading time.}
+	\caption{Results under various scenarios with different I/O workloads, I/O performance and the number of data replicas. $r$WASH improves 58\%, 50\% and 53\% over Hadoop-default, as well as 34\%, 26\% and 30\% over WASH-greedy in terms of the maximal task reading time.}
 	\label{Fig:complete}
 	%\vspace{-1ex}
 \end{figure*}
@@ -598,7 +599,7 @@ Traditional scheduling mechanisms are often unaware of the types and I/O workloa
 	\subfigure[Large Workload
 	]{\label{Fig:unbalance3}\includegraphics[height=1.6in]{fig_unbanlancedata3_1.eps}}
 	\vspace{-1ex}
-	\caption{Results for various I/O workloads under skewed data distribution. Our $r$WASH improves by up to 27\%, 41\% and 34\% over Hadoop-default, as well as 38\%, 32\% and 37\% over WASH-greesy in terms of the maximal task reading time.
+	\caption{Results for various I/O workloads under skewed data distribution. Our $r$WASH improves by up to 27\%, 41\% and 34\% over Hadoop-default, as well as 38\%, 32\% and 37\% over WASH-greedy in terms of the maximal task reading time.
 	}
 	\label{Fig:unbalance}
 	\vspace{-0.35cm}
@@ -626,31 +627,31 @@ Traditional scheduling mechanisms are often unaware of the types and I/O workloa
 %\end{table}
 
 \textbf{Settings:}
-In traditional distributed file systems, e.g., HDFS\cite{b19}, distributed datasets, i.e., data blocks, are uniformly stored among disks, whose unified size is 128MB. Therefore, in this experimental environment, we uniformly deploy 200000 data blocks among 500 disks, each of which has three data replicas. The task reading time for only one piece of data, i.e., $T_i$, ranges from 10ms to 500ms, uniformly. 
+In traditional distributed file systems, e.g., HDFS\cite{b19}, distributed datasets, i.e., data blocks, are uniformly stored among disks, whose unified size is 128MB. Therefore, in this experimental environment, we uniformly deploy 200000 data blocks among 500 disks, each of which has three data replicas. The task reading time for only one piece of data, i.e., $T_i$, ranges from 100ms to 500ms, uniformly. 
 
 
 
 \subsection{Simulation Results}
 
-\textbf{Characteristics of I/O workloads:} Fig.~\ref{Fig:instance} shows the results under various workloads among 50 disks. X-axis represents the IDs for different disk while Y-axis represents the task reading time. Note that the completion of concurrent data fetching relies on the maximal task reading time. The black dotted line illustrates the result of WASH-greedy while the green line illustrates the result of $r$WASH. In general, $r$WASH performs much better than Hadoop-default in terms of the maximal task reading time. As shown in Fig.~\ref{Fig:instance1} further, i.e., in the small workload scenario, the result of Hadoop-default has large fluctuations since it is unaware of storage type and unbalance I/O workload among heterogeneous storage devices when selecting a source device for each task. As a result, the straggler elongates the completion time for concurrent data fetching, although the data is distributed uniformly among storage devices.
+\textbf{Characteristics of I/O workloads:} Fig.~\ref{Fig:instance} shows the results under various workloads among 50 disks. X-axis represents the IDs for different disks while Y-axis represents the task reading time. Note that the completion of concurrent data fetching relies on the maximal task reading time. The black dotted line illustrates the result of WASH-greedy while the green line illustrates the result of $r$WASH. In general, $r$WASH performs much better than Hadoop-default in terms of the maximal task reading time. As shown in Fig.~\ref{Fig:instance1} further, i.e., in the small workload scenario, the result of Hadoop-default has large fluctuations since it is unaware of storage types and unbalance I/O workloads among heterogeneous storage devices when selecting a source device for each task. As a result, the straggler elongates the completion time for concurrent data fetching, although the data is distributed uniformly among storage devices.
 
-More specifically, the maximal task reading time under Hadoop-default is 756ms since the bottleneck occurs within disk-6 for concurrent data fetching, and further influences the overall latency of data analytics, as shown in Fig.~\ref{Fig:instance1}. Although WASH-greedy reduces the maximal task reading time to 450ms, it ignores to avoid the hotspots on those disks with higher I/O performance. WASH-greedy actually shows its preference on the disk with higher I/O performance for data fetching, but crowded I/O workloads also worsen the task reading time due to the concurrent use. In contrast, $r$WASH selects the source devices based on delicate calculated probabilities with peak 343.6ms in disk-17. 
-Compared with Hadoop-default and WASH-greedy, $r$WASH reduces reading time for tasks by up 57\% and 40\%, respectively.   
+More specifically, the maximal task reading time under Hadoop-default is 7560ms since the bottleneck occurs within disk-6 for concurrent data fetching, and further influences the overall latency of data analytics, as shown in Fig.~\ref{Fig:instance1}. Although WASH-greedy reduces the maximal task reading time to 4050ms, it ignores to avoid the hotspots on those disks with higher I/O performance. WASH-greedy actually shows its preference on the disk with higher I/O performance for data fetching, but crowded I/O workloads also worsen the task reading time due to the concurrent use. In contrast, $r$WASH selects the source devices based on delicate calculated probabilities with peak 2340ms in disk-17. 
+Compared with Hadoop-default and WASH-greedy, $r$WASH reduces reading time for tasks by up 69\% and 42\%, respectively.   
 
 Further shown in Fig.~\ref{Fig:instance2} and Fig.~\ref{Fig:instance3}, with the increase number of concurrent data fetching, the maximal task reading time also increases among disks. When the number of tasks is about 2000 in middle workload scenario, the maximal task reading time of 
-Hadoop-default and WASH-greedy is 2244ms and 1495ms, respectively. The maximal task reading time of $r$WASH is only 1116ms, which speeds up the concurrent data fetching by up to 51\% and 15\%, respectively. 
-Furthermore, in large Workloads scenario, $r$WASH reduces reading time for tasks by up to 57\% and 35\% over Hadoop-default and WASH-greedy, respectively. 
+Hadoop-default and WASH-greedy is 22440ms and 14950ms, respectively. The maximal task reading time of $r$WASH is only 11160ms, which speeds up the concurrent data fetching by up to 50\% and 25\%, respectively. 
+Furthermore, in large Workloads scenario, $r$WASH reduces reading time for tasks by up to 56\% and 30\% over Hadoop-default and WASH-greedy, respectively. 
 
  %5546, 3650 and 2346
 
-\textbf{Scalability of $r$WASH:} Next, we evaluate $r$WASH from three main aspects, including I/O workloads, I/O performance and the number of data replicas. In Fig.~\ref{Fig:completeWorkload}, it summarizes the maximal task reading time for three I/O workloads, illustrating that the average improvement of $r$WASH compared with other two strategies is at least 20\%. In Fig.~\ref{Fig:completeHeter}, when the average I/O performance is low, i.e., the average reading time for only one data block from disks is 55ms in the scenario of low heterogeneity, the reduction of task reading time by $r$WASH compared with Hadoop-default and WASH-greedy is 49\% and 26\%, respectively. When the average I/O performance is high, i.e., the average reading time for only one data block from disks is 275ms in the scenario of high heterogeneity, the reduction by $r$WASH compared with Hadoop-default and WASH-greedy is 51\% and 26\%, respectively.
+\textbf{Scalability of $r$WASH:} Next, we evaluate $r$WASH from three main aspects, including I/O workloads, I/O performance and the number of data replicas. In Fig.~\ref{Fig:completeWorkload}, it summarizes the maximal task reading time for three I/O workloads, illustrating that the average improvement of $r$WASH compared with other two strategies is at least 34\%. In Fig.~\ref{Fig:completeHeter}, when the average I/O performance is high, i.e., the average reading time for one data block from disks is only 150ms in the scenario of low heterogeneity, the reduction of task reading time by $r$WASH compared with Hadoop-default and WASH-greedy is 49\% and 26\%, respectively. When the average I/O performance is low, i.e., the average reading time for only one data block from disks is 300ms in the scenario of high heterogeneity, the reduction by $r$WASH compared with Hadoop-default and WASH-greedy is 51\% and 25\%, respectively.
 
-As shown in Fig.~\ref{Fig:completeRep}, with the growth on the number of data replicas, the maximal task reading time for Hadoop-default and $r$WASH decreases while the maximal task reading time for WASH-greedy increases instead. The reason behind is that for large number of data replicas, more data is likely to be stored within those disks with high I/O performance. Thus, WASH-greedy leaves much heavier I/O workloads on those disks since it often shows its preference on those disks, making them being hotspots and elongating the maximal task reading due to the concurrent use. Fortunately, for $r$WASH, it has more choices among heterogeneous disks and has more opportunities to balance the I/O workloads for data analytical tasks. In general, $r$WASH takes not only the I/O performance of disks but also the I/O workloads into consideration, and is willing to choose almost the best source disk for each task. $r$WASH improves up to 65\% deduction on task reading time when the number of data replicas is 5.
+As shown in Fig.~\ref{Fig:completeRep}, with the growth on the number of data replicas, the maximal task reading time for Hadoop-default and $r$WASH decreases while the maximal task reading time for WASH-greedy increases instead. The reason behind is that for large number of data replicas, more data is likely to be stored within those disks with high I/O performance. Thus, WASH-greedy leaves much heavier I/O workloads on those disks since it often shows its preference on those disks, making them being hotspots and elongating the maximal task reading time due to the concurrent use. Fortunately, for $r$WASH, it has more choices among heterogeneous disks and has more opportunities to balance the I/O workloads for data analytical tasks. In general, $r$WASH takes not only the I/O performance of disks but also the I/O workloads into consideration, and is willing to choose almost the best source disk for each task. $r$WASH improves up to 57\% deduction on task reading time when the number of data replicas is 5.
 
- \textbf{Impact of data distribution:} Fig.~\ref{Fig:unbalance} shows the results for various I/O workloads under skewed data distribution. More technically, the data is unbalanced stored among disks, which obeys Gaussian distribution \cite{b44}. The skewed data distribution actually influences the maximal task reading time because more data is crowded within a few disks. For Hadoop-default and WASH-greedy, the feasible choices of source disks become small, and hence more I/O workloads are crowded within these disks with high I/O performance, incurring high task reading time. For $r$WASH, it is willing to choose those with poor I/O performance for offloading. In general, $r$WASH improves by up to 27\%, 41\% and 34\% over Hadoop-default, as well as 38\%, 32\% and 37\% over WASH-greedy, respectively.
+ \textbf{Impact of data distribution:} Fig.~\ref{Fig:unbalance} shows the results for various I/O workloads under skewed data distribution. More technically, the data is unbalanced stored among disks, which might obey Gaussian distribution \cite{b44}. The skewed data distribution actually influences the maximal task reading time because more data is crowded within a few disks. For Hadoop-default and WASH-greedy, the feasible choices of source disks become small, and hence more I/O workloads are crowded within these disks with high I/O performance, incurring high task reading time. For $r$WASH, it is willing to choose those with poor I/O performance for offloading. In general, $r$WASH improves by up to 27\%, 41\% and 34\% over Hadoop-default, as well as 38\%, 32\% and 37\% over WASH-greedy, respectively.
 
 
-In general, $r$WASH takes only several seconds for computation, i.e., the linear programming part in $r$WASH, which is acceptable for realistic deployment. The overall average improvement compared with $r$WASH and Hadoop-default as well as WASH-greedy is 55\% and 25\%, respectively.
+In general, $r$WASH takes only several seconds for computation, i.e., the linear programming part in $r$WASH, which is acceptable for realistic deployment. The overall average improvement compared with $r$WASH and Hadoop-default as well as WASH-greedy is 55\% and 30\%, respectively.
 
 
 \section{CONCLUSION}\label{CONCLUSION}
@@ -664,7 +665,7 @@ In this paper, in order to avoid the unbalanced use on fetching large volume of 
 \textbf{\normalsize{The Proof of Theorem 1}}
 \vspace{1ex}
 
-The decision version of our WASH problem asks whether there exits a series of variables satisfying all the constrains (there is no objective function). Such problem can be reduced from 3-SAT problem which is defined as follows: Given a set of variables $B = \{b_1, b_2, ..., b_n\}$, each of them only can be taken in $\{True, False\}$. A literal $l$ consists of $b_i$ or $\overline b_i$. There are $m$ different clauses $C_j$, one of which is a disjunction of three literals \cite{b44}. The 3-SAT problem asks whether or not there exits a series of $b_i$ satisfying the total clauses which is one of Karp's 21 NP-complete problems \cite{b9}.
+The decision version of our WASH problem asks whether there exists a series of variables satisfying all the constrains (there is no objective function). Such problem can be reduced from 3-SAT problem which is defined as follows: Given a set of variables $B = \{b_1, b_2, ..., b_n\}$, each of them only can be taken in $\{True, False\}$. A literal $l$ consists of $b_i$ or $\overline b_i$. There are $m$ different clauses $C_j$, one of which is a disjunction of three literals \cite{b44}. The 3-SAT problem asks whether or not there exits a series of $b_i$ satisfying the total clauses which is one of Karp's 21 NP-complete problems \cite{b9}.
 
 Taking the special case of  WASH problem, the parameters are set as follows:
 \begin{itemize}

@@ -13,44 +13,44 @@ Database file #1: DLP.bib
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 34 entries,
+You've used 35 entries,
             4087 wiz_defined-function locations,
-            1007 strings with 13352 characters,
-and the built_in function-call counts, 23660 in all, are:
-= -- 1807
-> -- 548
+            1012 strings with 13457 characters,
+and the built_in function-call counts, 24127 in all, are:
+= -- 1839
+> -- 557
 < -- 173
-+ -- 305
-- -- 95
-* -- 1095
-:= -- 3418
-add.period$ -- 75
-call.type$ -- 34
-change.case$ -- 34
++ -- 309
+- -- 97
+* -- 1115
+:= -- 3493
+add.period$ -- 78
+call.type$ -- 35
+change.case$ -- 35
 chr.to.int$ -- 414
-cite$ -- 34
-duplicate$ -- 1756
-empty$ -- 2100
-format.name$ -- 117
-if$ -- 5586
+cite$ -- 35
+duplicate$ -- 1797
+empty$ -- 2158
+format.name$ -- 120
+if$ -- 5697
 int.to.chr$ -- 0
-int.to.str$ -- 34
-missing$ -- 330
-newline$ -- 127
-num.names$ -- 26
-pop$ -- 835
+int.to.str$ -- 35
+missing$ -- 338
+newline$ -- 130
+num.names$ -- 27
+pop$ -- 858
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 1821
+skip$ -- 1858
 stack$ -- 0
-substring$ -- 1001
-swap$ -- 1359
+substring$ -- 1002
+swap$ -- 1380
 text.length$ -- 35
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 34
+type$ -- 35
 warning$ -- 0
-while$ -- 97
-width$ -- 36
-write$ -- 326
+while$ -- 98
+width$ -- 37
+write$ -- 334
