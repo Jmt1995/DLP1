@@ -27,7 +27,7 @@
 \title{Workload-Aware Scheduling for Data Analytics upon Heterogeneous Storage}
 
 \author{\IEEEauthorblockN{Mingtao~Ji, Yibo~Jin, Zhuzhong~Qian, Sanglu~Lu}
-\IEEEauthorblockA{State Key Lab. for Novel Software Technology, Nanjing University, Nanjing, China}
+\IEEEauthorblockA{State Key Laboratory. for Novel Software Technology, Nanjing University, Nanjing, China}
 \{jmt, yibo.jin\}@smail.nju.edu.cn, \{qzz, sanglu\}@nju.edu.cn}
 
 
@@ -57,14 +57,14 @@ Nowadays, there is a new trend that data centers have a variety of data analytic
 However, the reading performance, i.e., data fetching time from heterogeneous devices, is quite different due to two main aspects. 
 First, the different types of storage, e.g., SSD \cite{b32} and HDD \cite{b33}, naturally result in different reading performance. 
 %As shown in Fig.~\ref{Fig:motivation}, fetching the same amount of data from HDD takes almost twice longer than that from SSD. 
-As shown in Fig.~\ref{Fig:motivation}, for the same number of data fetching concurrently, fetching data from HDD takes almost twice longer than that from SSD. 
-Second, the number of data fetching concurrently on a device also affects the I/O performance. As further shown in Fig.~\ref{Fig:motivation}, when the number of data fetching increases, the data fetching time also increases as a result of concurrent use.%when the number of tasks increases, the reading time for each task will also increase.
+As shown in Fig.~\ref{Fig:motivation}, given the same number of data fetching concurrently, fetching data from HDD takes almost twice longer than that from SSD. 
+Second, the number of data fetching concurrently on a device also affects the I/O performance. As further shown in Fig.~\ref{Fig:motivation}, when the concurrent number of data fetching increases, the data fetching time increases, accordingly (We analyze the result in detail in \ref{motivational_study}). %with the concurrent number of data fetching increasing. %sas a result of concurrent use.%when the number of tasks increases, the reading time for each task will also increase.
 %when there are a large number of tasks reading data concurrently from specific device, read performance is also affected
 
 % unbalanced usage on storage device
 Essentially, different reading performance results from the unbalanced use on storage devices, but traditional strategies \cite{b2} \cite{b3} \cite{b4} \cite{b5} often ignore to avoid it and incur relatively longer data fetching time. 
 More specifically, fetching data from the devices with higher I/O performance actually earns shorter time than that from those with lower I/O performance \cite{b7}. %particular device 
-However, large number of I/O requests on the higher I/O performance device still increase the data fetching time and worse correspond data analytics, which should be avoid as much as possible. 
+However, large number of I/O requests on a few devices with higher I/O performance device still increase the data fetching time and worsen corresponding data analytics, which should be avoid as much as possible. 
 
 \begin{figure}[!t]
 	\centering
@@ -79,8 +79,8 @@ However, large number of I/O requests on the higher I/O performance device still
 
 %However, due to the divergent read performance of different storage and the cumulative workload of the storage, its hard to hard to achieve this aim. 
  
-This paper focuses on dealing with unbalanced use on heterogeneous storage devices in this paper. 
-However, due to the multiple replicas of data and different I/O performance of devices, how to choose target source from feasible ones storing the replica is also a big challenge.
+In this paper, we focuses on dealing with unbalanced use on heterogeneous storage devices. 
+However, due to the multiple replicas of data and different I/O performance of devices, how to choose target source from feasible storage devices storing the replica as well as to keep balanced use on them is also a big challenge.
 Most of the previous researches have already focused on heterogeneous computing resources \cite{b25}\cite{b26}\cite{b35}\cite{b36}, but ignore the heterogeneous storage devices. 
 Although some works \cite{b6}\cite{b7} have already considered heterogeneous storage devices to accelerate data analytics, neither unbalanced I/O workloads nor multiple data replicas is considered. 
 We formulate the Workload-Aware Scheduling problem for Heterogeneous storage devices (WASH) which considers both of these factors. 
@@ -187,24 +187,27 @@ However, traditional schedulers for data analytics are usually unaware of disks'
 	\includegraphics[height=1.8in]{fig_motivation7.eps}
 	%\includegraphics[height=1.8in]{fig_motivationnew4.eps}
 	%\caption{Comparisons of (1) data fetching time for one piece of data with unified size (64MB) on various storage, i.e., SSD and HDD. (2) data fetching time for various I/O workloads, i.e., the number of data fetching concurrently.}
-	\caption{Comparisons of data fetching time with 10 repeated trails when the number of data fetching concurrently is 1 and 2 in Fig.~\ref{Fig:motivation}.}
+	\caption{Comparisons of data fetching time with 10 repeated trails when the number of data fetching concurrently is 1 and 2, respectively.}
 	\label{Fig:motivation1}
-	%\vspace{-0.4cm}
+	\vspace{-0.4cm}
 \end{figure} 
 
-\subsection{Motivational study}\label{BB}
+\subsection{Motivational study}\label{motivational_study}
 
 
 % \textbf{Experimental study.} 
 
 \subsubsection{Experimental study}  
 % \paragraph{\textbf{Experimental study}}
-To show that the types and I/O workloads of heterogeneous storage have great influence on data fetching time, we conduct several data fetching experiments upon heterogeneous storage devices, i.e., HDD and SSD. We configure that each data block has a fixed-size, i.e., 64MB, corresponding to one data fetching task. Due to that the number of data fetching tasks deployed on each storage devices is no more than 50 in a submitted job in general, the number of data fetching concurrently is set from 1 to 50. 
+To show that the types and I/O workloads of heterogeneous storage have great influence on data fetching time, we conduct several data fetching experiments upon heterogeneous storage devices, i.e., HDD and SSD. We configure that each data block has a fixed-size, i.e., 64MB, corresponding to one data fetching task. 
+%Due to that the number of data fetching tasks deployed on each storage devices is no more than 50 in a submitted job in general, 
+Then, the number of data fetching concurrently is set from 1 to 50, each of which has 10 repeated trails to get the average. 
 % Due to that the number of data fetching tasks deployed on each storage devices is no more than 50 in a submitted job in general, the number of data fetching concurrently is set with a range from 1 to 50.
 
-More specific, the results of our experiments are shown as Fig.~\ref{Fig:motivation}. X-axis represents the number of data fetching concurrently and Y-axis represents the overall data fetching time for all deployed tasks. The red line denotes the time of fetching data from HDD while the blue line represents the time of fetching data from SSD. On the one hand, fetching data from different storage devices takes quite divergent time for the same number of data fetching concurrently. For example, in Fig.~\ref{Fig:motivation}, 20 task fetching corresponding data from HDD concurrently, the overall time taken is around 15s while the data fetching time is 7.5s from SSD. It is due to these two storage devices store data in different ways \cite{b46} \cite{b47}.
-One the other hand, the data fetching time is approximately in a line the number of data fetching increasing for the particular storage devices as shown in Fig.~\ref{Fig:motivation}. More detailed is shown in Fig.~\ref{Fig:motivation1}, we display the data fetching time for 10 repeated trailed trails when the number of data fetching concurrently is 1 and 2. The red line marked by circular represents the data fetching time with only one data fetching task while the red line marked by square represents the data fetching time with two data fetching task concurrently. For each trail, the former almost is twice larger than the latter. %data block need to be fetched 
-From above all, we first conclude that the time of fetching a fixed-size data block, e.g., 64MB, for each storage devices might be quite different. Second, due to the fact that the data fetching time is approximately in a line the number of data fetching increasing, we could represent the overall data fetching on a particular storage devices by summing the time of all data fetching from that device.
+More specifically, the results of our experiments are shown as Fig.~\ref{Fig:motivation}. X-axis represents the number of data fetching concurrently and Y-axis represents the overall data fetching time for all deployed tasks. The red line denotes the time of fetching data from HDD while the blue line represents the time of fetching data from SSD. On the one hand, fetching data from different storage devices takes quite divergent time for the same number of data fetching concurrently. For example, in Fig.~\ref{Fig:motivation}, 20 tasks fetching corresponding data from HDD concurrently, the overall time taken is around 15s while the data fetching time is about 7.5s from SSD. It is due to that these two types of storage devices store data in different ways \cite{b46} \cite{b47}. 
+One the other hand, the data fetching time increases approximately linearly with the number of data fetching increasing for the particular storage devices as shown in Fig.~\ref{Fig:motivation}. More detailed is shown in Fig.~\ref{Fig:motivation1}, we display the data fetching time for 10 repeated trails when the number of data fetching concurrently is 1 and 2. The red line marked by circular represents the data fetching time with only one data fetching task while the red line marked by square represents the data fetching time with two data fetching task concurrently. For each trail, the former is almost twice larger than the latter. %data block need to be fetched 
+
+From above all, we first conclude that the time of fetching a fixed-size data block, e.g., 64MB, for each storage devices might be quite different. Second, due to the fact that the data fetching time increases approximately linearly with the number of data fetching increasing, we could represent the overall data fetching on a particular storage devices by summing the time of all data fetching from that device. 
 
 
 %\textbf{Motivation and example.}
@@ -282,7 +285,7 @@ I_i^j =
 \end{cases}\nonumber
 \end{equation}
 
-The distribution of data can be obtained before tasks' arrival, although the traditional distributed file system, e.g., HDFS, doesn't provide the interface to change data distribution for universality and isolation.  
+The distribution of data can be obtained before tasks' arrivals \cite{b48}, although the traditional distributed file system, e.g., HDFS, doesn't provide the interface to change data distribution for universality and isolation.  
 Then, we denote by $load_i$ the data fetching time of all tasks from disk-$i$, i.e.,
 \begin{equation}
  load_{i} = \sum_{j}\{I_i^j*T_i\}. \nonumber
@@ -366,7 +369,7 @@ The key to minimize the data fetching time for overall tasks is to find the opti
 %However, due to the NP-hardness of WASH problem, the optimal solutions can't be obtained within polynomial time, unless NP $=$ P
 %such algorithm always giving preference to disks with high-performance as input for each task
 %However, extensive experiments shows that WASH-greedy has a little improvement over the baseline, i.e., Hadoop-default which is storage-unaware. 
-To solve WASH effectively as well as to avoid the bottleneck, we design a randomized algorithm ($r$WASH) which takes the I/O workload into consideration and chooses source devices based on delicate calculated probabilities. Through our theoretical analysis, algorithm $r$WASH can be proved concentrated on its optimum with high probability, i.e., 1- O($e^{-t^2}$), where $t$ is the concentration bound.
+To solve WASH effectively as well as to avoid the bottleneck on a specific disk, we design a randomized algorithm ($r$WASH) which takes the I/O workload into consideration and chooses source devices based on delicate calculated probabilities. Through our theoretical analysis, algorithm $r$WASH can be proved concentrated on its optimum with high probability, i.e., 1- O($e^{-t^2}$), where $t$ is the concentration bound.
 \begin{comment}
 
 \subsection{Greedy-based Inspiration}\label{Heuristic}
@@ -416,7 +419,7 @@ Specifically, by relaxing the WASH problem to its relaxation version, i.e., WASH
 \paragraph{\textbf{Relaxation of WASH}} A linear programming (LP) problem is solvable within polynomial time as well as shows a lower bound for the corresponding integer linear programming (ILP) problem. A natural point of view is to relax the WASH problem to a LP problem. The method is to change the domain of decision variables from integer domain \{0, 1\} to real one [0, 1], i.e., WASH-relaxation. Such process is named $Relaxation$. Detailed description is illustrated as follows: 
 %According to the previous analysis \ref{WASH}, this problem is NP-hard, whose optimal source disk for each task cannot be obtained within polynomial time. But 
 %The solution of WASH-relaxation provides a lower bound for the original WASH problem (WASH is a minimization problem. For the maximization problem is on the contrary).
-%\vspace{-0.2cm}
+\vspace{-0.2cm}
  \begin{align}
  Min:&\;\;\;\;\;\max\limits_{i}\{\sum_{j}p_i^j*T_i\}\;\;\;\;\;\;[\rm{WASH-relaxation}]\nonumber\\
  s.t. 
@@ -615,28 +618,7 @@ Then, the result of Inequality (\ref{prove:result}) can be improved to $1 - O(e^
 %More   served from the equation (\ref{prove:result}), the feasible solution, i.e., $SOL$ found by the $r$WASH and the optimum, i.e., $OPT$  are approximated by probability $1 - O(e^{-t^2})$.
 %, i.e., only a few millisecond.
 
-%Alogoritm1
-\begin{algorithm}[!t]
 
-	\textbf{Require:} Task-$j$ and its input data-$\phi_j$, $\forall j\in\mathcal{T}$.
-
-	\begin{algorithmic}[1]
-		
-		\State $Result$ $\gets$ \{\}\label{WASH-greedy:init}
-		\For{each task-$j$} 
-			\State \{$d_{1}^j$, $d_{2}^j$,... $d_{C}^j$\} = $f(\phi_j)$
-		
-			\leftline{\;\;\;\;\;\;$//$ $f(\phi_j)$ is a set of disks storing data-$\phi_j$.}
-	
-			\State $d_{min}^j$ $\gets$ $\mathop{\arg\min}\limits_{d \in \{d_{1}^j, d_{2}^j,... d_{C}^j\}}$ $\{T_d\}$
-			\State $Result$ $\gets$ $Result$ $\cup$
-			\{$< j, d_{min}^j>$\}
-		\EndFor
-%\left \langle \right \rangle
-	\State  Each task-$j$ reads data according to $Result$.
-	\end{algorithmic}
-	\caption{WASH-greedy}\label{WASH-greedy}
-\end{algorithm}
 
 \section{PERFORMANCE EVALUATION}\label{PERFORMANCE_EVALUATION}
 %, with $r$WASH and storage-unaware scheduling algorithm.
@@ -661,7 +643,7 @@ Traditional scheduling mechanisms are often unaware of the types and I/O workloa
 	\vspace{-1ex}
 	\caption{Results under various scenarios with different I/O workloads, I/O performance and the number of data replicas. $r$WASH improves 58\%, 50\% and 53\% over Hadoop-default, as well as 34\%, 26\% and 30\% over WASH-greedy in terms of the maximum data fetching time.}
 	\label{Fig:complete}
-	%\vspace{-1ex}
+	\vspace{-1ex}
 \end{figure*}
 % \ref{Fig:completeWorkload} represents effect of different workloads on reading time. \ref{Fig:completeHeter} represents the reading time of the three algorithm on different Heterogeneity cluster. \ref{Fig:completeRep} denotes the reading time of the three algorithm when $C$ is different.
 
@@ -704,7 +686,28 @@ Traditional scheduling mechanisms are often unaware of the types and I/O workloa
 \textbf{Settings:}
 In traditional distributed file systems, e.g., HDFS\cite{b19}, distributed datasets, i.e., data blocks, are uniformly stored among disks, whose unified size is 128MB. Therefore, in this experimental environment, we uniformly deploy 200000 data blocks among 500 disks, each of which has three data replicas. The data fetching time for only one piece of data, i.e., $T_i$, ranges from 100ms to 500ms, uniformly. 
 
+%Alogoritm1
+\begin{algorithm}[!t]
 
+    \textbf{Require:} Task-$j$ and its input data-$\phi_j$, $\forall j\in\mathcal{T}$.
+
+    \begin{algorithmic}[1]
+        
+        \State $Result$ $\gets$ \{\}\label{WASH-greedy:init}
+        \For{each task-$j$} 
+            \State \{$d_{1}^j$, $d_{2}^j$,... $d_{C}^j$\} = $f(\phi_j)$
+        
+            \leftline{\;\;\;\;\;\;$//$ $f(\phi_j)$ is a set of disks storing data-$\phi_j$.}
+    
+            \State $d_{min}^j$ $\gets$ $\mathop{\arg\min}\limits_{d \in \{d_{1}^j, d_{2}^j,... d_{C}^j\}}$ $\{T_d\}$
+            \State $Result$ $\gets$ $Result$ $\cup$
+            \{$< j, d_{min}^j>$\}
+        \EndFor
+%\left \langle \right \rangle
+    \State  Each task-$j$ reads data according to $Result$.
+    \end{algorithmic}
+    \caption{WASH-greedy}\label{WASH-greedy}
+\end{algorithm}
 
 \subsection{Simulation Results}
 
